@@ -113,9 +113,9 @@ begin
       Result := True;
     end;
   except
-    on E: exception do Lib.Files.FileLog('Erro ao obter dados do estudo '
-                                        +IntToStr(AID)
-                                        +' via WebService: ' + E.Message);
+    on E: exception do Lib.Files.Log('Erro ao obter dados do estudo '
+                                    +IntToStr(AID)
+                                    +' via WebService: ' + E.Message);
   end;
 end;
 
@@ -133,9 +133,9 @@ begin
     if Self.Execute(REST_CLASS_STUDY, 'GetList') then
       Lib.JSON.JSONToCds(TJSONObject(Self.MethodResult), Result);
   except
-    on E: exception do Lib.Files.FileLog('Erro ao obter dados do origem '
-                                        +IntToStr(AOriginID)
-                                        +' via WebService: ' + E.Message);
+    on E: exception do Lib.Files.Log('Erro ao obter dados do origem '
+                                    +IntToStr(AOriginID)
+                                    +' via WebService: ' + E.Message);
   end;
 end;
 
@@ -149,7 +149,7 @@ begin
     Result := Self.Execute(REST_CLASS_STUDY, 'SetDicomSituation');
   except
     on e: exception do
-      FileLog('Erro ao gerar atualizar situação das imagens via Webservice: ' + E.Message);
+      Lib.Files.Log('Erro ao gerar atualizar situação das imagens via Webservice: ' + E.Message);
   end;
 end;
 
@@ -195,20 +195,20 @@ begin
     if not Self.Execute(REST_CLASS_STUDY, 'Insert') then
     begin
       Result := Self.MethodResult.GetStr('error');
-      Lib.Files.FileLog(Format(LOG_ONRAD_INSERT_WEB_FAIL, [Self.jStudy.PatientName,
-                                                           Self.jStudy.StudyUID,
-                                                           Self.MethodResult.GetStr('error')]));
+      Lib.Files.Log(Format(LOG_ONRAD_INSERT_WEB_FAIL, [Self.jStudy.PatientName,
+                                                       Self.jStudy.StudyUID,
+                                                       Self.MethodResult.GetStr('error')]));
     end
 
     else if Self.MethodResult.GetBool('id') then
     begin
       Result := Self.MethodResult.GetStr('id');
-      Lib.Files.FileLog(Format(LOG_ONRAD_INSERT_WEB_OK, [Self.jStudy.PatientName,
-                                                         Self.jStudy.StudyUID,
-                                                         Self.MethodResult.GetInt('id')]));
+      Lib.Files.Log(Format(LOG_ONRAD_INSERT_WEB_OK, [Self.jStudy.PatientName,
+                                                     Self.jStudy.StudyUID,
+                                                     Self.MethodResult.GetInt('id')]));
     end;
   except
-    on e: exception do FileLog('Erro ao gerar estudo via Webservice: ' + E.Message);
+    on e: exception do Lib.Files.Log('Erro ao gerar estudo via Webservice: ' + E.Message);
   end;
 end;
 //==============================================================================

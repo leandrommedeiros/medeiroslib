@@ -66,10 +66,9 @@ begin
     Zip.Close;
     Result := True;
   except
-    on E: Exception do FileLog(E.ClassName + ' raised error: ' + E.Message);
+    on E: Exception do Lib.Files.Log(E.ClassName + ' raised error: ' + E.Message);
   end;
 end;
-//==============================================================================
 
 //==| Função - Descomprime Imagens |============================================
 function UncompressImages(const ADir, AZipFile: string): Boolean;
@@ -91,5 +90,6 @@ begin
    FreeAndNil(UnZipper);
  end;
 end;
+//==============================================================================
 
 end.

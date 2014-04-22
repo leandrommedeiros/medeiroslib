@@ -194,7 +194,7 @@ begin
       except
         on e: Exception do
         begin
-          Lib.Files.FileLog('Falha de conexão FTP, Mensagem: ' + e.Message);
+          Lib.Files.Log('Falha de conexão FTP, Mensagem: ' + e.Message);
           Exit;
         end;
       end;
@@ -204,7 +204,7 @@ begin
     iFileSize := Lib.Files.GetFileSizeB(ASourceDir + AFile);
 
     if not Lib.FTP.FTPForceDirectory(AFTPCon, ATargetDir) then
-      Lib.Files.FileLog('Falha ao gerar diretório de destino: ' + ATargetDir)
+      Lib.Files.Log('Falha ao gerar diretório de destino: ' + ATargetDir)
 
     else begin
       AFTPCon.ChangeDir(ATargetDir);
@@ -440,7 +440,7 @@ begin
       Self.List(AFileList, AFilter, False);
       Result := AFileList.Count > 0;
     except
-      Lib.Files.FileLog('Falha ao listar arquivos do diretório "' + ARootDir + '"');
+      Lib.Files.Log('Falha ao listar arquivos do diretório "' + ARootDir + '"');
     end;
 end;
 
@@ -533,7 +533,7 @@ begin
       iFileSize := Lib.Files.GetFileSizeB(ASourceDir + AFile);
 
       if not Self.ForceDirectory(ATargetDir) then
-        Lib.Files.FileLog('Falha ao gerar diretório de destino: ' + ATargetDir)
+        Lib.Files.Log('Falha ao gerar diretório de destino: ' + ATargetDir)
 
       else begin
         Self.ChangeDir(ATargetDir);
@@ -572,7 +572,7 @@ begin
       iFileSize := AMemoryStream.Size;
 
       if not Self.ForceDirectory(ATargetDir) then
-        Lib.Files.FileLog('Falha ao gerar diretório de destino: ' + ATargetDir)
+        Lib.Files.Log('Falha ao gerar diretório de destino: ' + ATargetDir)
 
       else begin
         Self.ChangeDir(ATargetDir);
@@ -611,7 +611,7 @@ begin
       iFileSize := Self.Size(AFile);
 
       if not Lib.Files.ValidateDir(ATargetDir) then
-        Lib.Files.FileLog('Falha ao gerar diretório de destino: ' + ATargetDir)
+        Lib.Files.Log('Falha ao gerar diretório de destino: ' + ATargetDir)
 
       else begin
         Self.Get(AFile, ATargetDir + AFile, True, Append);
@@ -679,7 +679,7 @@ begin
     except
       on e: Exception do
       begin
-        Lib.Files.FileLog('Falha de conexão FTP, Mensagem: ' + e.Message);
+        Lib.Files.Log('Falha de conexão FTP, Mensagem: ' + e.Message);
         Result := False;
       end;
     end;

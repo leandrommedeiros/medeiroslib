@@ -91,7 +91,7 @@ begin
   try
     SvcMgr := OpenSCManager(PChar(AMachine), nil, SC_MANAGER_ALL_ACCESS);
 
-    if not Bool(SvcMgr) then FileLog(SysErrorMessage(GetLastError))
+    if not Bool(SvcMgr) then Lib.Files.Log(SysErrorMessage(GetLastError))
     else                     Result := OpenService(SvcMgr, PChar(AService), AFlags);
   finally
     CloseServiceHandle(SvcMgr);
@@ -139,7 +139,7 @@ begin
       CloseServiceHandle(schs);
     end;
   except
-    on E: Exception do FileLog(LOG_SERVICE_ERROR + E.Message);
+    on E: Exception do Lib.Files.Log(LOG_SERVICE_ERROR + E.Message);
   end;
 
   Result := dwStat;
@@ -186,7 +186,7 @@ begin
       CloseServiceHandle(schs);
     end;
   except
-    on E: Exception do FileLog(LOG_SERVICE_ERROR + E.Message);
+    on E: Exception do Lib.Files.Log(LOG_SERVICE_ERROR + E.Message);
   end;
 
   Result := ss.dwCurrentState = SERVICE_STOPPED;
@@ -221,7 +221,7 @@ begin
       CloseServiceHandle(schs);
     end;
   except
-    on E: Exception do FileLog(LOG_SERVICE_ERROR + E.Message);
+    on E: Exception do Lib.Files.Log(LOG_SERVICE_ERROR + E.Message);
   end;
 
   Result := ss.dwCurrentState = SERVICE_RUNNING;

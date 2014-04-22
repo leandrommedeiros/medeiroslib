@@ -112,7 +112,7 @@ begin
     Result := True;                                                             //Se conseguir copiar todos, retorno verdadeiro
   except                                                                        //Em caso de erro
     on e: Exception do                                                          //gravo a mensagem no log em arquivo
-      Lib.Files.FileLog('Falha ao setar parâmetros no SQLDataSet. Erro: ' + e.Message);
+      Lib.Files.Log('Falha ao setar parâmetros no SQLDataSet. Erro: ' + e.Message);
   end;
 end;
 
@@ -226,7 +226,7 @@ begin
       if Assigned(Self.DspDynamic)   then FreeAndNil(Self.DspDynamic);          //e o TDataSetProvider também, se necessário
     except                                                                      //caso não consiga
       on e: Exception do                                                        //gero um log em arquivo com o erro
-        Lib.Files.FileLog('ExecuteQuery: Falha ao destruir componentes dinâmicos: ' + e.Message);
+        Lib.Files.Log('ExecuteQuery: Falha ao destruir componentes dinâmicos: ' + e.Message);
     end;
   end;
 end;
@@ -240,7 +240,7 @@ begin
     if Assigned(Self.DspDynamic)   then FreeAndNil(Self.DspDynamic);            //e o TDataSetProvider também, se necessário
   except                                                                        //caso não consiga
     on e: Exception do                                                          //gero um log em arquivo com o erro
-      Lib.Files.FileLog('ExecuteQuery: Falha ao destruir componentes dinâmicos: ' + e.Message);
+      Lib.Files.Log('ExecuteQuery: Falha ao destruir componentes dinâmicos: ' + e.Message);
   end;
 
   inherited Destroy;                                                            //Por fim executo o desconstrutor herdado
@@ -846,7 +846,7 @@ var
     try
       ACds := TClientDataSet.Create(Application);                               //tento criá-lo
     except
-      Lib.Files.FileLog('Erro ao instanciar TClientDataSet');
+      Lib.Files.Log('Erro ao instanciar TClientDataSet');
     end;
   end;
 begin
@@ -933,7 +933,7 @@ var
     try
       ACds := TClientDataSet.Create(Application);                               //tento criá-lo
     except
-      Lib.Files.FileLog('Erro ao instanciar TClientDataSet');
+      Lib.Files.Log('Erro ao instanciar TClientDataSet');
     end;
   end;
 begin

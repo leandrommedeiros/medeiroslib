@@ -129,7 +129,7 @@ begin
     Result         := True;
   except
     on e: Exception do
-      Lib.Files.FileLog('Falha ao estabelecer conexão com o S3: ' + e.Message);
+      Lib.Files.Log('Falha ao estabelecer conexão com o S3: ' + e.Message);
   end;
 end;
 
@@ -191,13 +191,13 @@ begin
         end
 
         else                                                                    //Senão
-          Lib.Files.FileLog(Format(ERROR_UPLOADING_FILE,                        //gravo um log em disco com a mensagem retornada pela Amazon
-                          [AFileName, Self.FBucketName, CloudResponse.StatusMessage]));
+          Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                            //gravo um log em disco com a mensagem retornada pela Amazon
+                               [AFileName, Self.FBucketName, CloudResponse.StatusMessage]));
       end;
     except                                                                      //Se ocorrer um erro inesperado no processo
       on e: Exception do
-        Lib.Files.FileLog(Format(ERROR_UPLOADING_FILE,                          //gravo um log tentando obter a mensagem do erro
-                               [AFileName, Self.FBucketName, e.Message]));
+        Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                              //gravo um log tentando obter a mensagem do erro
+                            [AFileName, Self.FBucketName, e.Message]));
     end;
   finally                                                                       //Ao final sempre
     FileContent := nil;                                                         //Limpo a referência para o arquivo em Stream, permitindo que a memória seja liberada
@@ -223,7 +223,7 @@ begin
 
     if not Lib.Files.CreatePublicFile(ATargetPath + AFileName, FileContent) then
     begin
-      Lib.Files.FileLog('Falha ao gerar arquivo local');
+      Lib.Files.Log('Falha ao gerar arquivo local');
       Exit;
     end;
 
@@ -237,13 +237,13 @@ begin
         200, 201:
           Result := True;
         else
-          Lib.Files.FileLog(Format(ERROR_DOWNLOADING_FILE,
-                            [AFileName, Self.FBucketName, CloudResponse.StatusMessage]));
+          Lib.Files.Log(Format(ERROR_DOWNLOADING_FILE,
+                              [AFileName, Self.FBucketName, CloudResponse.StatusMessage]));
       end;
     except
       on e: Exception do
-        Lib.Files.FileLog(Format(ERROR_DOWNLOADING_FILE,
-                                 [AFileName, Self.FBucketName, e.Message]));
+        Lib.Files.Log(Format(ERROR_DOWNLOADING_FILE,
+                            [AFileName, Self.FBucketName, e.Message]));
     end;
   finally
     FreeAndNil(FileContent);

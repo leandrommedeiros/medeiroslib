@@ -235,7 +235,7 @@ begin
     Result := jObj.GetStr(APropertyName, ADefaultValue);
   except
     on e: exception do
-      FileLog('Erro ao interpretar String como JSON: ' + e.Message);
+      Lib.Files.Log('Erro ao interpretar String como JSON: ' + e.Message);
   end;
 end;
 
@@ -252,7 +252,7 @@ begin
     Result := jObj.GetInt(APropertyName, ADefaultValue);
   except
     on e: exception do
-      FileLog('Erro ao interpretar String como JSON: ' + e.Message);
+      Lib.Files.Log('Erro ao interpretar String como JSON: ' + e.Message);
   end;
 end;
 
@@ -269,7 +269,7 @@ begin
     Result := jObj.GetFloat(APropertyName, ADefaultValue);
   except
     on e: exception do
-      FileLog('Erro ao interpretar String como JSON: ' + e.Message);
+      Lib.Files.Log('Erro ao interpretar String como JSON: ' + e.Message);
   end;
 end;
 
@@ -286,7 +286,7 @@ begin
     Result := jObj.GetBool(APropertyName, ADefaultValue);
   except
     on e: exception do
-      FileLog('Erro ao interpretar String como JSON: ' + e.Message);
+      Lib.Files.Log('Erro ao interpretar String como JSON: ' + e.Message);
   end;
 end;
 
@@ -303,7 +303,7 @@ begin
     Result := jObj.GetDtTime(APropertyName, ADefaultValue);
   except
     on e: exception do
-      FileLog('Erro ao interpretar String como JSON: ' + e.Message);
+      Lib.Files.Log('Erro ao interpretar String como JSON: ' + e.Message);
   end;
 end;
 

@@ -39,6 +39,7 @@ type
   function  GetLargestFile(sFileList: TStringList): string;
   function  StrToFileStream(Str: String): TFileStream;
   procedure FileLog(const AText: string; const ANameByDate: Boolean = True);
+  procedure Log(const AText: string; const ANameByDate: Boolean = True);
   function  WorkingDir: string;
   function  CreatePublicFile(const AFileName: string): Boolean; overload;
   function  CreatePublicFile(const AFileName: string; var AStream: TFileStream): Boolean; overload;
@@ -161,7 +162,7 @@ begin
   except
     on E: Exception do
     begin
-      FileLog('Erro ao excluir arquivo "' + slFiles[idx] + '". Mensagem: ' + E.Message);
+      Lib.Files.Log('Erro ao excluir arquivo "' + slFiles[idx] + '". Mensagem: ' + E.Message);
       Result := False;
     end;
   end;
@@ -368,7 +369,7 @@ end;
   Parâmetros de Entrada:
     1. Mensagem de Log à ser salvo > String
 ============================================| Leandro Medeiros (01/11/2012) |==}
-procedure FileLog(const AText: string; const ANameByDate: Boolean = True);
+procedure Log(const AText: string; const ANameByDate: Boolean = True);
 var
    sFileName : string;
    ErrorFile : TextFile;
@@ -397,6 +398,12 @@ begin
   finally
     CloseFile(ErrorFile)
   end;
+end;
+
+
+procedure FileLog(const AText: string; const ANameByDate: Boolean = True);
+begin
+  Lib.Files.Log(AText, ANameByDate);
 end;
 
 {==| Função - Diretório de Trabalho |===========================================
@@ -499,7 +506,7 @@ begin
     SysUtils.RenameFile(AFileName, AFileName + '.old');
     Result := True;
   except
-    on e: exception do Lib.Files.FileLog('Falha ao apagar arquivo: ' + e.Message);
+    on e: exception do Lib.Files.Log('Falha ao apagar arquivo: ' + e.Message);
   end;
 end;
 

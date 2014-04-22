@@ -201,7 +201,7 @@ begin
     end;
   except
     on e: Exception do
-      Lib.Files.FileLog('Error ao autenticar usuário: ' + e.Message);
+      Lib.Files.Log('Error ao autenticar usuário: ' + e.Message);
   end;
 end;
 
@@ -226,7 +226,7 @@ begin
     end
 
     else begin
-      Lib.Files.FileLog(Self.MethodResult.GetStr('error'));
+      Lib.Files.Log(Self.MethodResult.GetStr('error'));
 
       if (Self.MethodResult.GetInt('errorId') = REST_ERROR_INVALID_SESSION) and
          (Self.Login) then
