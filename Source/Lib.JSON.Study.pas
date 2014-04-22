@@ -10,7 +10,7 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  System.Classes, Lib.JSON.Ext;
+  System.Classes, Lib.JSON.Extended;
 
 { Classes }
 type

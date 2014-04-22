@@ -10,7 +10,7 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  Data.DB, DataSnap.DBClient, System.SysUtils, Lib.JSON.Ext, Data.DBXJSON;
+  Data.DB, DataSnap.DBClient, System.SysUtils, Lib.JSON.Extended, Data.DBXJSON;
 
 { Constantes }
 const

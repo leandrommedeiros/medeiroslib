@@ -10,7 +10,7 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  System.Classes, IdHTTP, Lib.REST.Parameters, Lib.JSON.Ext;
+  System.Classes, IdHTTP, Lib.REST.Parameters, Lib.JSON.Extended;
 
 { Classes }
 type

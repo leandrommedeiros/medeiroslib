@@ -136,7 +136,7 @@
         <DCCReference Include="..\Source\ComponentsRegister.pas"/>
         <DCCReference Include="..\Source\Lib.AwsS3.pas"/>
         <DCCReference Include="..\Source\Lib.JSON.Doc.pas"/>
-        <DCCReference Include="..\Source\Lib.JSON.Ext.pas"/>
+        <DCCReference Include="..\Source\Lib.JSON.Extended.pas"/>
         <DCCReference Include="..\Source\Lib.JSON.Parser.pas"/>
         <DCCReference Include="..\Source\Lib.JSON.pas"/>
         <DCCReference Include="..\Source\Lib.JSON.Study.pas"/>

@@ -59,7 +59,7 @@ contains
   {$IFNDEF VER150}
   Lib.AwsS3 in '..\Source\Lib.AwsS3.pas',
   Lib.JSON.Doc in '..\Source\Lib.JSON.Doc.pas',
-  Lib.JSON.Ext in '..\Source\Lib.JSON.Ext.pas',
+  Lib.JSON.Extended in '..\Source\Lib.JSON.Extended.pas',
   Lib.JSON.Parser in '..\Source\Lib.JSON.Parser.pas',
   Lib.JSON in '..\Source\Lib.JSON.pas',
   Lib.JSON.Study in '..\Source\Lib.JSON.Study.pas',

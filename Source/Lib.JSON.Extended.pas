@@ -4,7 +4,7 @@
 
 ===============================================================| 10/04/2013 |==}
 
-unit Lib.JSON.Ext;
+unit Lib.JSON.Extended;
 
 {$WARN SYMBOL_DEPRECATED OFF}
 

@@ -34,7 +34,8 @@ implementation
 
 { Bibliotecas para Implementação }
 uses
-  Lib.REST.Constants, Lib.JSON, Lib.JSON.Ext, Lib.Files, System.SysUtils, DBXJSON;
+  Lib.REST.Constants, Lib.JSON, Lib.JSON.Extended, Lib.Files, System.SysUtils,
+  DBXJSON;
 
 
 {*******************************************************************************
