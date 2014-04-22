@@ -1,0 +1,90 @@
+package MedeirosLib;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'MedeirosLib - Biblioteca de utilidades por Leandro Medeiros'}
+{$IMPLICITBUILD ON}
+
+requires
+  {$IFDEF VER150}
+  vcl,
+  rtl,
+  dbrtl,
+  dsnap,
+  indy,
+  dbexpress;
+
+  {$ELSE}
+  xmlrtl,
+  rtl,
+  vcl,
+  DbxCommonDriver,
+  dbrtl,
+  DbxClientDriver,
+  CustomIPTransport,
+  dbexpress,
+  dsnap,
+  IndySystem,
+  IndyProtocols,
+  IndyCore;
+  {$ENDIF}
+
+contains
+  BrowseFolder in '..\Source\BrowseFolder.pas',
+  ComponentsRegister in '..\Source\ComponentsRegister.pas',
+
+  {$IFNDEF VER150}
+  Lib.AwsS3 in '..\Source\Lib.AwsS3.pas',
+  Lib.JSON.Doc in '..\Source\Lib.JSON.Doc.pas',
+  Lib.JSON.Ext in '..\Source\Lib.JSON.Ext.pas',
+  Lib.JSON.Parser in '..\Source\Lib.JSON.Parser.pas',
+  Lib.JSON in '..\Source\Lib.JSON.pas',
+  Lib.JSON.Study in '..\Source\Lib.JSON.Study.pas',
+  Lib.JSON.TreeView in '..\Source\Lib.JSON.TreeView.pas',
+  Lib.REST.Constants in '..\Source\Lib.REST.Constants.pas',
+  Lib.REST.Parameters in '..\Source\Lib.REST.Parameters.pas',
+  Lib.REST in '..\Source\Lib.REST.pas',
+  Lib.REST.Study in '..\Source\Lib.REST.Study.pas',
+  Lib.ZIP in '..\Source\Lib.ZIP.pas',
+  {$ENDIF}
+
+  Lib.DB in '..\Source\Lib.DB.pas',
+  Lib.Files in '..\Source\Lib.Files.pas',
+  Lib.FTP in '..\Source\Lib.FTP.pas',
+  Lib.StrUtils in '..\Source\Lib.StrUtils.pas',
+  Lib.Utils in '..\Source\Lib.Utils.pas',
+  Lib.Win in '..\Source\Lib.Win.pas',
+  LockApplication.Controle in '..\Source\LockApplication.Controle.pas',
+  LockApplication.Email in '..\Source\LockApplication.Email.pas',
+  LockApplication.Email.Status in '..\Source\LockApplication.Email.Status.pas' {StatusEmail},
+  LockApplication.Func in '..\Source\LockApplication.Func.pas',
+  LockApplication.Interfaces in '..\Source\LockApplication.Interfaces.pas' {Bloqueio},
+  LockApplication in '..\Source\LockApplication.pas',
+  LockApplication.Vars in '..\Source\LockApplication.Vars.pas',
+  LockCadastro.Unt in '..\Source\LockCadastro.Unt.pas' {cadastro},
+  StreamFile in '..\Source\StreamFile.pas';
+
+end.
