@@ -30,13 +30,15 @@ type
   function  GetFolderList(ARootPath: String; const ASub: Boolean = True): TStringList; overload;
   procedure GetFileList(ADirectory: string; var AResult: TStringList;
     AFilter: string = '*.*'; ASub: Boolean = True); overload;
+  function GetNewestFileDateTime(ADirectory: string;
+    const AFilter: string = '*.*'): TDateTime;
   function GetFileList(ADirectory: string; const AFilter: string = '*.*';
     const ASub: Boolean = True): TStringList; overload;
   function  GetFileSize(sFileName: string; rMB: Boolean = True): Real;
   function  GetFileSizeB(sFileName: string): Integer;
   function  GetNextFileName(const AFullFileName: string): string; overload;
   procedure GetNextFileName(const ADir: string; var AFileName: string); overload;
-  function  GetLargestFile(sFileList: TStringList): string;
+  function GetLargestFile(sFileList: TStringList): string;
   function  StrToFileStream(Str: String): TFileStream;
   procedure FileLog(const AText: string; const ANameByDate: Boolean = True);
   procedure Log(const AText: string; const ANameByDate: Boolean = True);
@@ -45,6 +47,7 @@ type
   function  CreatePublicFile(const AFileName: string; var AStream: TFileStream): Boolean; overload;
   function  ForceDelete(const AFileName: string): Boolean;
   function  LoadFile(const AFileName: String; ARequiredSizeMod: Integer = 1): TBytes;
+  function  ExtractLastFolderName(AFileName: string): string;
 
 implementation
 
@@ -120,13 +123,11 @@ end;
 ===============================================================================}
 function ValidateDir(var ADir: string; ACreate: Boolean = True): Boolean;
 begin
-  Result := True;
-
   if Trim(ADir[Length(ADir)]) <> '\' then                                       //Se o último caracter da string não for uma barra
     ADir := Trim(ADir) + '\';                                                   //vou acrescentá-la
   if ACreate and not DirectoryExists(ADir) then                                 //Se o diretório não existir eu o crio
     try
-      CreateDir(ADir);
+      Result := ForceDirectories(ADir);
     except
       Result := False;
     end;
@@ -150,8 +151,8 @@ end;
 //==| Função - Remover Diretório |==============================================
 function ClearDirectory(const ADir: string; const AFilter: string = '*.*'): Boolean;
 var
-  slFiles: TStringList;
-  idx: integer;
+  slFiles : TStringList;
+  idx     : integer;
 begin
   Result := True;
 
@@ -263,6 +264,31 @@ function GetFileList(ADirectory: string; const AFilter: string = '*.*';
 begin
   Result := TStringList.Create;
   GetFileList(ADirectory, Result, AFilter, ASub);
+end;
+
+//==| Função - Obter Arquivo mais recente |=====================================
+function GetNewestFileDateTime(ADirectory: string; const AFilter: string = '*.*'): TDateTime;
+var
+  iError : Integer;
+  SR     : TSearchRec;
+begin
+  Lib.Files.ValidateDir(ADirectory);
+  Result := 0;
+
+  try
+    iError := FindFirst(ADirectory + AFilter, faAnyFile, SR);
+
+    while not Bool(iError) do
+    begin
+      if ((SR.Attr and faDirectory) <> faDirectory) and
+        (SR.TimeStamp > Result) then
+        Result := SR.TimeStamp;
+
+      iError := SysUtils.FindNext(SR);
+    end;
+  finally
+    SysUtils.FindClose(SR);
+  end;
 end;
 
 {==| Função - Obter Tamanho de Arquivo (MB) |===================================
@@ -400,11 +426,12 @@ begin
   end;
 end;
 
-
+//==| Função Log (Retro-compatibilidade) |======================================
 procedure FileLog(const AText: string; const ANameByDate: Boolean = True);
 begin
   Lib.Files.Log(AText, ANameByDate);
 end;
+
 
 {==| Função - Diretório de Trabalho |===========================================
     Retorna uma string contendo o diretório em que a aplicação está. Concatena
@@ -414,8 +441,8 @@ end;
 function WorkingDir: string;
 var sDir : string;
 begin
-  sDir := ExtractFilePath(Application.ExeName);
-  ValidateDir(sDir);
+  sDir := SysUtils.ExtractFilePath(Application.ExeName);
+  Lib.Files.ValidateDir(sDir, False);
   Result := sDir;
 end;
 
@@ -529,6 +556,31 @@ begin
     fsResult.ReadBuffer(Result[0], fsResult.Size);
   finally
     fsResult.Free;
+  end;
+end;
+
+//==| Extrair nome da última pasta |============================================
+function ExtractLastFolderName(AFileName: string): string;
+var
+  idx : integer;
+begin
+  Result    := EmptyStr;
+  AFileName := SysUtils.ExtractFileDir(AFileName);
+
+  idx := System.Length(AFileName);
+
+  if AFileName[idx] = '\' then
+    System.Delete(AFileName, idx, 1);
+
+  while Windows.BOOL(idx) do
+  begin
+    if AFileName[idx] <> '\' then
+      idx := idx - 1
+
+    else begin
+      Result := Copy(AFileName, idx + 1, Length(AFileName));
+      idx    := 0;
+    end;
   end;
 end;
 //==============================================================================

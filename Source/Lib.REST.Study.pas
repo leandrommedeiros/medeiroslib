@@ -16,18 +16,24 @@ uses
 type
   TRESTStudy = class (TRESTConnection)
   protected
-    jStudy : TJSONStudy;
     procedure FeedParameters;
   public
+    jStudy : TJSONStudy;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    function GetInfo(const AID: integer): Boolean;
+    function GetInfo: Boolean; overload;
+    function GetInfo(const AID: integer): Boolean; overload;
+    function GetInfo(const AStudyUID: string;
+      const AOriginID: integer): Boolean; overload;
     function GetList(const AOriginID: Integer; const AInitialDate,
       AFinalDate: TDateTime): TClientDataSet;
-    function UpdateDicomInformation: Boolean;
+    function UpdateDicomInformation: Boolean; overload;
+    function UpdateDicomInformation(const ANewDcmSituation: integer): Boolean; overload;
     function GetDicomRepositorySettings(const AOriginID: integer): Boolean;
-    function Insert(ACds: TClientDataSet): String;
+    function Insert: Boolean; overload;
+    function Insert(ACds: TClientDataSet): String; overload;
   end;
 
 implementation
@@ -102,10 +108,26 @@ end;
 //==| Função - Obter Dados |====================================================
 function TRESTStudy.GetInfo(const AID: integer): Boolean;
 begin
+  Self.jStudy.ID := AID;
+  Result         := Self.GetInfo;
+end;
+
+//==| Função - Obter Dados |====================================================
+function TRESTStudy.GetInfo(const AStudyUID: string;
+  const AOriginID: integer): Boolean;
+begin
+  Self.jStudy.StudyUID := AStudyUID;
+  Self.jStudy.OriginID := AOriginID;
+  Result               := Self.GetInfo;
+end;
+
+//==| Função - Obter Dados |====================================================
+function TRESTStudy.GetInfo: Boolean;
+begin
   Result := False;
 
   try
-    Self.MethodParams.Params['studyId'] := IntToStr(AID);
+    Self.FeedParameters;
 
     if Self.Execute(REST_CLASS_STUDY, 'GetInfo') then
     begin
@@ -113,9 +135,8 @@ begin
       Result := True;
     end;
   except
-    on E: exception do Lib.Files.Log('Erro ao obter dados do estudo '
-                                    +IntToStr(AID)
-                                    +' via WebService: ' + E.Message);
+    on E: exception do
+      Lib.Files.Log('Erro ao obter dados do estudo via WebService: ' + E.Message);
   end;
 end;
 
@@ -138,6 +159,14 @@ begin
                                     +' via WebService: ' + E.Message);
   end;
 end;
+
+//==| Definir Situação DICOM |==================================================
+function TRESTStudy.UpdateDicomInformation(const ANewDcmSituation: integer): Boolean;
+begin
+  Self.jStudy.DicomSituationID := ANewDcmSituation;
+  Result                       := Self.UpdateDicomInformation;
+end;
+
 
 //==| Definir Situação DICOM |==================================================
 function TRESTStudy.UpdateDicomInformation: Boolean;
@@ -164,9 +193,39 @@ end;
 {==| Função - Inserir |=========================================================                                                                                                                        |==================================================
     Cria um registro no banco oficial do ONRAD através de uma função SQL. Se
   tudo correr bem, retorna o ID do estudo criado.
+  Retorno: Sucesso(Booleano).
+============================================| Leandro Medeiros (21/12/2012) |==}
+function TRESTStudy.Insert: Boolean;
+begin
+  Result := False;
+
+  try
+    Self.FeedParameters;
+
+    if not Self.Execute(REST_CLASS_STUDY, 'Insert') then
+      Lib.Files.Log(Format(LOG_ONRAD_INSERT_WEB_FAIL, [Self.jStudy.PatientName,
+                                                       Self.jStudy.StudyUID,
+                                                       Self.MethodResult.GetStr('error')]))
+    else if Self.MethodResult.GetBool('id') then
+    begin
+      Result      := True;
+      Self.jStudy := TJSONStudy.Create(Self.MethodResultStr);
+      Lib.Files.Log(Format(LOG_ONRAD_INSERT_WEB_OK, [Self.jStudy.PatientName,
+                                                     Self.jStudy.StudyUID,
+                                                     Self.jStudy.ID]));
+    end;
+  except
+    on e: exception do
+      Lib.Files.Log('Erro ao gerar estudo via Webservice: ' + e.Message);
+  end;
+end;
+
+{==| Função - Inserir |=========================================================                                                                                                                        |==================================================
+    Cria um registro no banco oficial do ONRAD através de uma função SQL. Se
+  tudo correr bem, retorna o ID do estudo criado.
   Parâmetros de Entrada:
     01. Dados do estudo > TClientDataSet.
-  Retorno: Novo ID do estudo no Sistema(Inteiro).
+  Retorno: Novo ID do estudo no Sistema(String).
 ============================================| Leandro Medeiros (21/12/2012) |==}
 function TRESTStudy.Insert(ACds: TClientDataSet): String;
 begin
@@ -190,25 +249,10 @@ begin
     Self.jStudy.PatientName      := ACds.FieldByName('PACIENTE').AsString;
     Self.jStudy.DicomSituationID := 2;
 
-    Self.FeedParameters;
-
-    if not Self.Execute(REST_CLASS_STUDY, 'Insert') then
-    begin
-      Result := Self.MethodResult.GetStr('error');
-      Lib.Files.Log(Format(LOG_ONRAD_INSERT_WEB_FAIL, [Self.jStudy.PatientName,
-                                                       Self.jStudy.StudyUID,
-                                                       Self.MethodResult.GetStr('error')]));
-    end
-
-    else if Self.MethodResult.GetBool('id') then
-    begin
-      Result := Self.MethodResult.GetStr('id');
-      Lib.Files.Log(Format(LOG_ONRAD_INSERT_WEB_OK, [Self.jStudy.PatientName,
-                                                     Self.jStudy.StudyUID,
-                                                     Self.MethodResult.GetInt('id')]));
-    end;
+    if Self.Insert then Result := IntToStr(Self.jStudy.ID);
   except
-    on e: exception do Lib.Files.Log('Erro ao gerar estudo via Webservice: ' + E.Message);
+    on e: exception do
+      Lib.Files.Log('Erro ao gerar estudo via Webservice: ' + e.Message);
   end;
 end;
 //==============================================================================

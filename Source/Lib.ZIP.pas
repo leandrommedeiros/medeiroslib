@@ -12,7 +12,7 @@ interface
 
 const
 { Constantes }
-  EXTENSION = '*.zip';
+  EXTENSION = '.zip';
 
 { Classes }
 type
