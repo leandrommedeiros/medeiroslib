@@ -71,7 +71,7 @@ begin
   Self.MethodParams.Params['hasPreviousResults']  := BoolToStr(Self.jStudy.PriorResults);
   Self.MethodParams.Params['urgent']              := BoolToStr(Self.jStudy.Urgent);
   Self.MethodParams.Params['accessionNumber']     := Self.jStudy.AccessionNumber;
-  Self.MethodParams.Params['studyuid']            := Self.jStudy.StudyUID;
+  Self.MethodParams.Params['studyUID']            := Self.jStudy.StudyUID;
   Self.MethodParams.Params['fileName']            := IntToStr(Self.jStudy.FileName);
   Self.MethodParams.Params['fileSize']            := IntToStr(Self.jStudy.FileSize);
 

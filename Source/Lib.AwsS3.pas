@@ -21,6 +21,8 @@ const
   BUCKET_PREFIX  = 'origem-%d';
   ERROR_UPLOADING_FILE    = 'Ocorreu um erro ao enviar arquivo "%s" para bucket "%s": "%s"';
   ERROR_DOWNLOADING_FILE  = 'Ocorreu um erro ao baixar arquivo "%s" para bucket "%s": "%s"';
+
+
 { Classes }
 type
   TS3Connection = class(TAmazonConnectionInfo)
@@ -37,6 +39,7 @@ type
     function Upload(ASourcePath: string; const ATargetDir, AFileName: String;
       ADelAfterTransfer: Boolean = False): Boolean;
     function Download(ASourcePath, ATargetPath, AFileName: String): Boolean;
+
     constructor Create(const AccountName, AccountKey, ABucketName: string); overload;
     destructor  Destroy; override;
   published
@@ -45,7 +48,7 @@ type
 
 { Protótipos - Procedimentos e Funções }
   function NewS3Connection(const AccountName, AccountKey, ABucketName: string;
-    var bSuccess: Boolean): TS3Connection;
+    out ASuccess: Boolean): TS3Connection;
 
 
 implementation
@@ -63,15 +66,15 @@ uses
 
 //==| Nova Conexão S3 |=========================================================
 function NewS3Connection(const AccountName, AccountKey, ABucketName: string;
-  var bSuccess: Boolean): TS3Connection;
+  out ASuccess: Boolean): TS3Connection;
 begin
   try
     Result   := TS3Connection.Create(nil);
-    bSuccess := Result.EstablishConnection(AccountName,
+    ASuccess := Result.EstablishConnection(AccountName,
                                            AccountKey,
                                            ABucketName);
   except
-    bSuccess := False;
+    ASuccess := False;
   end;
 end;
 
@@ -124,6 +127,8 @@ end;
 //==| Função - Estabelecer Conexão |============================================
 function TS3Connection.EstablishConnection: Boolean;
 begin
+  Result := False;
+
   try
     StorageService := TAmazonStorageService.Create(Self);
     Result         := True;

@@ -242,7 +242,7 @@ begin
   Result.AddPair('hasPreviousResults',  Self.PriorResults);
   Result.AddPair('urgent',              Self.Urgent);
   Result.AddPair('accessionNumber',     Self.AccessionNumber);
-  Result.AddPair('studyuid',            Self.StudyUID);
+  Result.AddPair('studyUID',            Self.StudyUID);
   Result.AddPair('fileName',            Self.FileName);
   Result.AddPair('fileSize',            Self.FileSize);
   Result.AddPair('doctorIdSign',        Self.DoctorSign);
