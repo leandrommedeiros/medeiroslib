@@ -55,7 +55,7 @@ implementation
 
 { Bibliotecas para Implementação }
 uses
-  Lib.Files, Lib.Win, Lib.Utils, Vcl.Dialogs;
+  Lib.Files, Lib.Win, Lib.Utils, Vcl.Dialogs, IPPeerClient;
 
 
 {*******************************************************************************
