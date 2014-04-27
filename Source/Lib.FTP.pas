@@ -26,10 +26,10 @@ type
     function ValidateConnectionParams: Boolean;
     function GetPathUp(APath: string; ARepeat: integer = 1): string;
     function PathExists(const APath: string): Boolean;
-    function ForcePathectory(const ANewPath: string): Boolean;
+    function ForcePath(const ANewPath: string): Boolean;
     function Upload(const ASourcePath, ATargetPath, AFile: string;
-      const Append: Boolean = false;
-      const ADelAfterUpload: Boolean = false): Boolean; overload;
+      const Append: Boolean = False;
+      const ADelAfterUpload: Boolean = False): Boolean; overload;
     function Upload(AMemoryStream: TMemoryStream; const ATargetPath,
       AFile: string; const Append: Boolean): Boolean; overload;
     function Download(ASourcePath, ATargetPath, AFile: string;
@@ -48,7 +48,7 @@ type
     sPasswd: string): Boolean; overload;
   function FTPParentFolder(APath: string; ARepeat: integer = 1): string;
   function FTPPathExists(AFTPCon: TIdFTP; const APath: string): Boolean;
-  function FTPForcePathectory(var AFTPCon: TIdFTP; const ANewPath: string): Boolean;
+  function FTPForcePath(var AFTPCon: TIdFTP; const ANewPath: string): Boolean;
   function FTPUpload(var AFTPCon: TIdFTP; const ASourcePath, ATargetPath,
     AFile: string; const Append: Boolean = false; const
     ADelAfterUpload: Boolean = false): Boolean; overload;
@@ -195,7 +195,7 @@ end;
     1. Pathetório a ser criado > String
   Retorno: Sucesso na criação (Booleano).
 ============================================| Leandro Medeiros (03/12/2012) |==}
-function TFTPConnection.ForcePathectory(const ANewPath: string): Boolean;
+function TFTPConnection.ForcePath(const ANewPath: string): Boolean;
 var
   sAux : string;
 begin
@@ -277,7 +277,7 @@ begin
     try
       iFileSize := Lib.Files.GetFileSizeB(ASourcePath + AFile);
 
-      if not Self.ForcePathectory(ATargetPath) then
+      if not Self.ForcePath(ATargetPath) then
         Lib.Files.Log('Falha ao gerar Pathetório de destino: ' + ATargetPath)
 
       else begin
@@ -285,7 +285,10 @@ begin
         Self.Put(ASourcePath + AFile, AFile, Append);
         iSentSize := Self.Size(AFile);
 
-        Result := iFileSize = iSentSize;
+        if Append then
+          Result := True
+        else
+          Result := iFileSize = iSentSize;
 
         if Result and ADelAfterUpload then
           Lib.Files.ForceDelete(ASourcePath + AFile);
@@ -316,7 +319,7 @@ begin
     try
       iFileSize := AMemoryStream.Size;
 
-      if not Self.ForcePathectory(ATargetPath) then
+      if not Self.ForcePath(ATargetPath) then
         Lib.Files.Log('Falha ao gerar Pathetório de destino: ' + ATargetPath)
 
       else begin
@@ -324,7 +327,10 @@ begin
         Self.Put(AMemoryStream, AFile, Append);
         iSentSize := Self.Size(AFile);
 
-        Result := iFileSize = iSentSize;
+        if Append then
+          Result := True
+        else
+          Result := iFileSize = iSentSize;
       end;
     finally
       Self.Disconnect;
@@ -513,7 +519,7 @@ begin
 end;
 
 //==| Função - Força Pathetório |================================================
-function FTPForcePathectory(var AFTPCon: TIdFTP; const ANewPath: string): Boolean;
+function FTPForcePath(var AFTPCon: TIdFTP; const ANewPath: string): Boolean;
 var
   sAux : string;
 begin
@@ -589,7 +595,7 @@ begin
   try
     iFileSize := Lib.Files.GetFileSizeB(ASourcePath + AFile);
 
-    if not Lib.FTP.FTPForcePathectory(AFTPCon, ATargetPath) then
+    if not Lib.FTP.FTPForcePath(AFTPCon, ATargetPath) then
       Lib.Files.Log('Falha ao gerar Pathetório de destino: ' + ATargetPath)
 
     else begin
@@ -597,7 +603,10 @@ begin
       AFTPCon.Put(ASourcePath + AFile, AFile, Append);
       iSentSize := AFTPCon.Size(AFile);
 
-      Result := iFileSize = iSentSize;
+      if Append then
+        Result := True
+      else
+        Result := iFileSize = iSentSize;
 
       if Result and ADelAfterUpload then Lib.Files.ForceDelete(ASourcePath + AFile);
     end;
@@ -636,7 +645,7 @@ begin
     end;
 
   try
-    Lib.FTP.FTPForcePathectory(FTPCon, ADestPath);
+    Lib.FTP.FTPForcePath(FTPCon, ADestPath);
     FTPCon.ChangeDir(ADestPath);
     FTPCon.Put(FMemoryStream, AFile);
     Result := True;

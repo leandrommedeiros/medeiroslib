@@ -565,7 +565,9 @@ var
   idx : integer;
 begin
   Result    := EmptyStr;
-  AFileName := SysUtils.ExtractFileDir(AFileName);
+
+  if Bool(Length(SysUtils.ExtractFileExt(AFileName))) then
+    AFileName := SysUtils.ExtractFileDir(AFileName);
 
   idx := System.Length(AFileName);
 

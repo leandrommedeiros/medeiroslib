@@ -188,7 +188,7 @@ end;
 //==| Função - Definir Atributos |==============================================
 procedure TJSONStudy.SetInfo(const AStudy: TJSONExtended);
 begin
-  Self.id               := AStudy.GetInt('id');
+  Self.ID               := AStudy.GetInt('studyId');
   Self.OriginID         := AStudy.GetInt('originId');
   Self.OriginName       := AStudy.GetStr('originName');
   Self.ModalityID       := AStudy.GetInt('modalityId');
@@ -223,7 +223,6 @@ function TJSONStudy.GetNativeJSON: TJSONExtended;
 begin
   Result := TJSONExtended.Create;
 
-  Result.AddPair('id',                  Self.ID);
   Result.AddPair('studyId',             Self.ID);
   Result.AddPair('originId',            Self.OriginID);
   Result.AddPair('originName',          Self.OriginName);

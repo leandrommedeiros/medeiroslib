@@ -130,8 +130,8 @@ begin
   Result := False;
 
   try
-    StorageService := TAmazonStorageService.Create(Self);
-    Result         := True;
+    Self.StorageService := TAmazonStorageService.Create(Self);
+    Result              := True;
   except
     on e: Exception do
       Lib.Files.Log('Falha ao estabelecer conexão com o S3: ' + e.Message);

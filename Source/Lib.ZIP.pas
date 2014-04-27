@@ -12,7 +12,7 @@ interface
 
 const
 { Constantes }
-  EXTENSION = '.zip';
+  DEFAULT_EXTENSION = '.zip';
 
 { Classes }
 type
@@ -22,19 +22,20 @@ type
   end;
 
 { Protótipos }
-  function CompressDirectory(const ASourcePath, ADestFile: string;
-    const KeepHierarchy: Boolean = True): Boolean;
-  function UncompressImages(const ADir, AZipFile: string): Boolean;
+  function CompressDirectory(const ASourcePath: string; ATargetFile: string;
+    const AKeepHierarchy: Boolean = True; const Append: Boolean = False): Boolean;
+  function UncompressFile(const APath, AZipFile: string;
+    const ADelAfterUnzip: Boolean = False): Boolean;
 
 implementation
 
 { Bibliotecas para Implementação }
 uses
-  Lib.Files, System.Zip, System.Classes, System.SysUtils;
+  Lib.Files, System.Zip, System.Classes, SysUtils;
 
 //==| Função - Comprimir Diretório |============================================
-function CompressDirectory(const ASourcePath, ADestFile: string;
-  const KeepHierarchy: Boolean = True): Boolean;
+function CompressDirectory(const ASourcePath: string; ATargetFile: string;
+  const AKeepHierarchy: Boolean = True; const Append: Boolean = False): Boolean;
 var
   Zip          : TZipFile;
   slFiles      : TStrings;
@@ -45,17 +46,23 @@ begin
   Result := False;
 
   try
-    CreatePublicFile(ADestFile + EXTENSION);
-    Zip := TZipFile.Create;
-    Zip.Open(ADestFile + EXTENSION, zmReadWrite);
+    if SysUtils.ExtractFileExt(ATargetFile) = EmptyStr then
+      ATargetFile := ATargetFile + DEFAULT_EXTENSION;
 
-    slFiles := GetFileList(ASourcePath);
+    if not Append and SysUtils.FileExists(ATargetFile) then
+      Lib.Files.ForceDelete(ATargetFile);
+
+    Lib.Files.CreatePublicFile(ATargetFile);
+    Zip := TZipFile.Create;
+    Zip.Open(ATargetFile, zmReadWrite);
+
+    slFiles := Lib.Files.GetFileList(ASourcePath);
 
     iLengthStart := Length(ASourcePath);
 
     for idx := 0 to slFiles.Count - 1 do
     begin
-      if KeepHierarchy then
+      if AKeepHierarchy then
         sDestFile := Copy(slFiles[idx], iLengthStart, Length(slFiles[idx]) - 1)
       else
         sDestFile := ExtractFileName(slFiles[idx]);
@@ -70,23 +77,23 @@ begin
   end;
 end;
 
-//==| Função - Descomprime Imagens |============================================
-function UncompressImages(const ADir, AZipFile: string): Boolean;
- var
+//==| Função - Descomprimir Arquivo |===========================================
+function UncompressFile(const APath, AZipFile: string;
+  const ADelAfterUnzip: Boolean = False): Boolean;
+var
  UnZipper: TZipFile;
 begin
- UnZipper:= TZipFile.Create();
- try
+  Result   := False;
+  UnZipper := TZipFile.Create;
+
   try
-   Unzipper.Open(ADir + AZipFile,zmRead);
-   Unzipper.ExtractAll(ADir + Copy(AZipFile, 1, Length(AZipFile) - 4));
+   Unzipper.Open(APath + AZipFile, zmRead);
+   Unzipper.ExtractAll(APath + Copy(AZipFile, 1, Length(AZipFile) - 4));
    Unzipper.Close;
    Result := True;
-  except
-   Result := False;
-  end;
+
+   if ADelAfterUnzip then Lib.Files.ForceDelete(APath + AZipFile);
  finally
-   DeleteFile(ADir + AZipFile);
    FreeAndNil(UnZipper);
  end;
 end;
