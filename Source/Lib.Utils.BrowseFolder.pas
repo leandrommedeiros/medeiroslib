@@ -4,7 +4,7 @@
 
 ============================================| Leandro Medeiros (20/10/2011) |==}
 
-unit BrowseFolder;
+unit Lib.Utils.BrowseFolder;
 
 interface
 

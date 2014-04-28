@@ -206,7 +206,7 @@ begin
       Lib.Files.Log(Format(LOG_ONRAD_INSERT_WEB_FAIL, [Self.jStudy.PatientName,
                                                        Self.jStudy.StudyUID,
                                                        Self.MethodResult.GetStr('error')]))
-    else if Self.MethodResult.GetBool('id') then
+    else if Self.MethodResult.GetBool('studyId') then
     begin
       Result      := True;
       Self.jStudy := TJSONStudy.Create(Self.MethodResultStr);

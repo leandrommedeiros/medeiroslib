@@ -53,7 +53,6 @@ requires
   {$ENDIF}
 
 contains
-  BrowseFolder in '..\Source\BrowseFolder.pas',
   ComponentsRegister in '..\Source\ComponentsRegister.pas',
 
   {$IFNDEF VER150}
@@ -76,6 +75,9 @@ contains
   Lib.FTP in '..\Source\Lib.FTP.pas',
   Lib.StrUtils in '..\Source\Lib.StrUtils.pas',
   Lib.Utils in '..\Source\Lib.Utils.pas',
+  Lib.Utils.BrowseFolder in '..\Source\Lib.Utils.BrowseFolder.pas',
+  Lib.Utils.StreamFile in '..\Source\Lib.Utils.StreamFile.pas',
+  Lib.Utils.AssociativeArray in '..\Source\Lib.Utils.AssociativeArray.pas',
   Lib.Win in '..\Source\Lib.Win.pas',
   LockApplication.Controle in '..\Source\LockApplication.Controle.pas',
   LockApplication.Email in '..\Source\LockApplication.Email.pas',
@@ -84,7 +86,6 @@ contains
   LockApplication.Interfaces in '..\Source\LockApplication.Interfaces.pas' {Bloqueio},
   LockApplication in '..\Source\LockApplication.pas',
   LockApplication.Vars in '..\Source\LockApplication.Vars.pas',
-  LockCadastro.Unt in '..\Source\LockCadastro.Unt.pas' {cadastro},
-  StreamFile in '..\Source\StreamFile.pas';
+  LockCadastro.Unt in '..\Source\LockCadastro.Unt.pas' {cadastro};
 
 end.

@@ -178,7 +178,7 @@ var
   jStudy : TJSONExtended;
 begin
   try
-    jStudy  := TJSONExtended.Create(ASerializedStudy);
+    jStudy := TJSONExtended.Create(ASerializedStudy);
     Self.SetInfo(jStudy);
   finally
     FreeAndNil(jStudy);
