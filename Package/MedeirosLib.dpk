@@ -49,7 +49,9 @@ requires
   dsnap,
   IndySystem,
   IndyProtocols,
-  IndyCore;
+  IndyCore,
+  IndyIPClient,
+  IndyIPCommon;
   {$ENDIF}
 
 contains

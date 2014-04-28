@@ -18,7 +18,7 @@ uses
   Lib.AwsS3, Lib.JSON.Doc, Lib.JSON.Parser, Lib.JSON.TreeView, Lib.REST,
   Lib.REST.Study,
   {$ENDIF}
-  Classes, LockApplication, Lib.DB, Lib.FTP, StreamFile;
+  Classes, LockApplication, Lib.DB, Lib.FTP, Lib.Utils.StreamFile;
 
 //==| Função Registradora |=====================================================
 procedure Register;

@@ -73,25 +73,25 @@
         <DCC_K>false</DCC_K>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_iOSDevice)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_CBuilderOutput>None</DCC_CBuilderOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_iOSSimulator)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_CBuilderOutput>None</DCC_CBuilderOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_OSX32)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;$(DCC_UsePackage)</DCC_UsePackage>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
@@ -132,6 +132,8 @@
         <DCCReference Include="IndySystem.dcp"/>
         <DCCReference Include="IndyProtocols.dcp"/>
         <DCCReference Include="IndyCore.dcp"/>
+        <DCCReference Include="IndyIPClient.dcp"/>
+        <DCCReference Include="IndyIPCommon.dcp"/>
         <DCCReference Include="..\Source\ComponentsRegister.pas"/>
         <DCCReference Include="..\Source\Lib.AwsS3.pas"/>
         <DCCReference Include="..\Source\Lib.JSON.Doc.pas"/>
