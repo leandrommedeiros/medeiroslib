@@ -37,7 +37,7 @@ type
     FUrgent             : Boolean;
     FAccessionNumber    : string;
     FStudyUID           : string;
-    FFileName           : integer;
+    FFileName           : String;
     FFileSize           : integer;
     FUserLastModifiedID : integer;
     FDoctorSignID       : integer;
@@ -51,6 +51,7 @@ type
     procedure SetPatientPID(const AValue: string);
     procedure SetSituationID(const AValue: integer = 0);
     procedure SetStudyUID(const AValue: string);
+    procedure SetFileName(const AValue: string);
   public
     constructor Create(const ASerializedStudy: string = '');
     procedure SetInfo(const ASerializedStudy: string); overload;
@@ -80,7 +81,7 @@ type
     property Urgent           : Boolean   read FUrgent             write FUrgent;
     property AccessionNumber  : String    read FAccessionNumber    write SetAccessionNumber;
     property StudyUID         : String    read FStudyUID           write SetStudyUID;
-    property FileName         : Integer   read FFileName           write FFileName;
+    property FileName         : String    read FFileName           write SetFileName;
     property FileSize         : Integer   read FFileSize           write FFileSize;
     property UserLastModified : Integer   read FUserLastModifiedID write FUserLastModifiedID;
     property DoctorSign       : Integer   read FDoctorSignID       write FDoctorSignID;
@@ -151,12 +152,18 @@ begin
   else               Self.FSituationID := 1;
 end;
 
-//==| "Seter" - STUDYUID |======================================================
+//==| "Setter" - STUDYUID |=====================================================
 procedure TJSONStudy.SetStudyUID(const AValue: string);
 begin
   Self.FStudyUID := System.SysUtils.Trim(AValue);
 end;
 
+//==| "Setter" - Nome do Arquivo |==============================================
+procedure TJSONStudy.SetFileName(const AValue: string);
+begin
+  if AValue <> EmptyStr then Self.FFileName := AValue
+  else if Self.ID <> 0  then Self.FFileName := IntToStr(Self.ID) + '.zip';       
+end;
 
 {*******************************************************************************
 
@@ -211,7 +218,7 @@ begin
   Self.Urgent           := AStudy.GetBool('urgent');
   Self.AccessionNumber  := AStudy.GetStr('accessionNumber');
   Self.StudyUID         := AStudy.GetStr('studyUID');
-  Self.FileName         := AStudy.GetInt('fileName');
+  Self.FileName         := AStudy.GetStr('fileName');
   Self.FileSize         := AStudy.GetInt('fileSize');
   Self.DoctorSign       := AStudy.GetInt('doctorIdSign');
   Self.DoctorCheck      := AStudy.GetInt('doctorIdCheck');

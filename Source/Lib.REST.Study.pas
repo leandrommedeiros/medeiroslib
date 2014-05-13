@@ -72,7 +72,7 @@ begin
   Self.MethodParams.Params['urgent']              := BoolToStr(Self.jStudy.Urgent);
   Self.MethodParams.Params['accessionNumber']     := Self.jStudy.AccessionNumber;
   Self.MethodParams.Params['studyUID']            := Self.jStudy.StudyUID;
-  Self.MethodParams.Params['fileName']            := IntToStr(Self.jStudy.FileName);
+  Self.MethodParams.Params['fileName']            := Self.jStudy.FileName;
   Self.MethodParams.Params['fileSize']            := IntToStr(Self.jStudy.FileSize);
 
   if Self.jStudy.StudyDate <> 0 then
@@ -166,7 +166,6 @@ begin
   Self.jStudy.DicomSituationID := ANewDcmSituation;
   Result                       := Self.UpdateDicomInformation;
 end;
-
 
 //==| Definir Situação DICOM |==================================================
 function TRESTStudy.UpdateDicomInformation: Boolean;
