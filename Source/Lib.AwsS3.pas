@@ -36,7 +36,10 @@ type
     function EstablishConnection: Boolean; overload;
     function EstablishConnection(const AccountName, AccountKey,
       ABucketName: string): Boolean; overload;
+    function GetFileSize(const ATargetDir, AFileName: string): Integer;
     function Upload(ASourcePath: string; const ATargetDir, AFileName: String;
+      ADelAfterTransfer: Boolean = False): Boolean;
+    function MultipartUpload(ASourcePath: string; const ATargetDir, AFileName: String;
       ADelAfterTransfer: Boolean = False): Boolean;
     function Download(ASourcePath, ATargetPath, AFileName: String): Boolean;
 
@@ -55,7 +58,7 @@ implementation
 
 { Bibliotecas para Implementação }
 uses
-  Lib.Files, Lib.Win, Lib.Utils, Vcl.Dialogs, IPPeerClient;
+  Lib.StrUtils, Lib.Files, Lib.Win, Lib.Utils, Vcl.Dialogs, IPPeerClient;
 
 
 {*******************************************************************************
@@ -150,6 +153,40 @@ begin
   Result           := Self.EstablishConnection;
 end;
 
+//==| Função - Obter tamanho do Arquivo |=======================================
+function TS3Connection.GetFileSize(const ATargetDir, AFileName: string): Integer;
+var
+  sMetadata,
+  sProperties   : TStrings;
+  sFileName     : string;
+  CloudResponse : TCloudResponseInfo;
+begin
+  Result := 0;
+
+  CloudResponse := TCloudResponseInfo.Create;                                   //instancio a classe responsável por receber o resultado de uma transferência
+
+  try
+    sFileName := Self.ValidateS3Path(ATargetDir)                                //Valido o nome de arquivo de destino segundo regras do S3
+               + Self.ValidateFileName(AFileName);
+
+    Self.StorageService.GetObjectProperties(Self.FBucketName,
+                                            sFileName,
+                                            sProperties,
+                                            sMetadata,
+                                            CloudResponse);
+
+    case CloudResponse.StatusCode of                                            //Se o código de situação
+      200, 201: begin                                                           //for 200 ou 201
+         TryStrToInt(Lib.StrUtils.ReturnValidChars(sProperties[7], sNumbers), Result);
+      end;
+    end;
+  except                                                                        //Se ocorrer um erro inesperado no processo
+    on e: Exception do
+      Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                                //gravo um log tentando obter a mensagem do erro
+                          [AFileName, Self.FBucketName, e.Message]));
+  end;
+end;
+
 //==| Função - Upload |=========================================================
 function TS3Connection.Upload(ASourcePath: string; const ATargetDir,
   AFileName: String; ADelAfterTransfer: Boolean = False): Boolean;
@@ -174,6 +211,67 @@ begin
     slMetadata.Values[SMD_PATH] := ASourcePath;                                 //e atribuo à ele a origem,
     slMetadata.Values[SMD_FROM] := GetComputerandUserName;                      //o nome do computador e o nome de usuário
     FileContent                 := Lib.Files.LoadFile(ASourcePath + AFileName);   //Carrego o arquivo à ser enviado na RAM
+    sTargetFile                 := Self.ValidateS3Path(ATargetDir)              //Valido o nome de arquivo de destino segundo regras do S3
+                                 + Self.ValidateFileName(AFileName);
+
+    try                                                                         //Tento
+      Self.StorageService.UploadObject(Self.FBucketName,                        //Enviar o arquivo para a Bucket configurada na instância
+                                       sTargetFile,                             //no destino validado
+                                       FileContent,                             //a partir do Stream que montei em memória
+                                       False,
+                                       slMetadata,
+                                       nil,
+                                       amzbaPublicRead,
+                                       CloudResponse);                          //e fornecendo um objeto para ser alimentado com a situação da transferência
+
+      case CloudResponse.StatusCode of                                          //Se o código de situação
+        200, 201: begin                                                         //for 200 ou 201
+          Result := True;                                                       //é porque a transferência foi bem sucedida
+
+          if ADelAfterTransfer then                                             //então, se foi solicitado na chamada do método,
+            Lib.Files.ForceDelete(ASourcePath + AFileName);                     //apago o arquivo do disco de origem
+        end
+
+        else                                                                    //Senão
+          Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                            //gravo um log em disco com a mensagem retornada pela Amazon
+                               [AFileName, Self.FBucketName, CloudResponse.StatusMessage]));
+      end;
+    except                                                                      //Se ocorrer um erro inesperado no processo
+      on e: Exception do
+        Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                              //gravo um log tentando obter a mensagem do erro
+                            [AFileName, Self.FBucketName, e.Message]));
+    end;
+  finally                                                                       //Ao final sempre
+    FileContent := nil;                                                         //Limpo a referência para o arquivo em Stream, permitindo que a memória seja liberada
+    FreeAndNil(CloudResponse);                                                  //Destruo o objeto com o retorno da Cloud
+    FreeAndNil(slMetadata);                                                     //e também a List com os metadados
+  end;
+end;
+
+//==| Função - Upload Particionado |============================================
+function TS3Connection.MultipartUpload(ASourcePath: string; const ATargetDir,
+  AFileName: String; ADelAfterTransfer: Boolean = False): Boolean;
+var
+  sTargetFile   : string;
+  slMetadata    : TStrings;
+  FileContent   : TBytes;
+  CloudResponse : TCloudResponseInfo;
+begin
+  Result := False;                                                              //Assumo falha
+
+  if (AFileName = EmptyStr) then Exit;                                          //Se não for informado o nome de arquivo, finalizo a rotina
+
+  try                                                                           //Tento
+    if not Lib.Files.ValidateDir(ASourcePath, False) or                           //Validar o diretório de origem
+       not System.SysUtils.DirectoryExists(ASourcePath) then                    //e se não existir
+      raise Exception.Create('Diretório de origem ("' + ASourcePath + '") não existe ou está inacessível.'); //disparo um erro
+
+                                                                                //Se chegar aqui
+    CloudResponse               := TCloudResponseInfo.Create;                   //instancio a classe responsável por receber o resultado de uma transferência
+    slMetadata                  := TStringList.Create;                          //crio também um TStringList para guardar os metadados do arquivo
+    slMetadata.Values[SMD_PATH] := ASourcePath;                                 //e atribuo à ele a origem,
+    slMetadata.Values[SMD_FROM] := GetComputerandUserName;                      //o nome do computador e o nome de usuário
+    FileContent                 := Lib.Files.LoadFile(ASourcePath + AFileName); //Carrego o arquivo à ser enviado na RAM
     sTargetFile                 := Self.ValidateS3Path(ATargetDir)              //Valido o nome de arquivo de destino segundo regras do S3
                                  + Self.ValidateFileName(AFileName);
 

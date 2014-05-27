@@ -47,7 +47,7 @@ type
     constructor Create(AOwner: TComponent); virtual;
     destructor  Destroy; override;
     function Login: Boolean;
-    function Execute(const AClass, AMethod: string): Boolean;
+    function Execute(const AClass, AMethod: string; ATries: integer = 3): Boolean;
     property SessionData : TONRADSession read FSessionData;
   published
     property AuthUser          : string read FUser          write FUser;
@@ -206,7 +206,8 @@ begin
 end;
 
 //==| Função - Executar |=======================================================
-function TRESTConnection.Execute(const AClass, AMethod: string): Boolean;
+function TRESTConnection.Execute(const AClass, AMethod: string;
+  ATries: integer = 3): Boolean;
 begin
   Result := False;
 
@@ -215,7 +216,22 @@ begin
     Self.MethodParams.Params['sessionUserId'] := IntToStr(Self.SessionData.UserID);
     Self.MethodParams.Params['sessionToken']  := Self.SessionData.Token;
 
-    Self.MethodResult := Self.HTTPGet(Self.MethodParams.ToString);
+    try
+      Self.MethodResult := Self.HTTPGet(Self.MethodParams.ToString);
+    except
+      on e: Exception do
+      begin
+        Lib.Files.Log(e.Message);
+
+        Inc(ATries, - 1);
+
+        if ATries > 0 then
+        begin
+          Result := Self.Execute(AClass, AMethod, ATries);
+          Exit;
+        end;
+      end;
+    end;
 
     if Self.MethodResult.GetStr('error') = JSON_FALSE then
     begin
@@ -231,7 +247,7 @@ begin
       if (Self.MethodResult.GetInt('errorId') = REST_ERROR_INVALID_SESSION) and
          (Self.Login) then
       begin
-        Result                := Self.Execute(AClass, AMethod);
+        Result := Self.Execute(AClass, AMethod);
       end;
     end
   finally

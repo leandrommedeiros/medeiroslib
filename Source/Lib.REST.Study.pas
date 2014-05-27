@@ -177,7 +177,7 @@ begin
     Result := Self.Execute(REST_CLASS_STUDY, 'SetDicomSituation');
   except
     on e: exception do
-      Lib.Files.Log('Erro ao gerar atualizar situação das imagens via Webservice: ' + E.Message);
+      Lib.Files.Log('Erro ao atualizar situação das imagens via Webservice: ' + E.Message);
   end;
 end;
 

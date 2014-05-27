@@ -35,7 +35,7 @@ type
   function GetFileList(ADirectory: string; const AFilter: string = '*.*';
     const ASub: Boolean = True): TStringList; overload;
   function  GetFileSize(sFileName: string; rMB: Boolean = True): Real;
-  function  GetFileSizeB(sFileName: string): Integer;
+  function  GetFileSizeB(AFileName: string): Integer;
   function  GetNextFileName(const AFullFileName: string): string; overload;
   procedure GetNextFileName(const ADir: string; var AFileName: string); overload;
   function GetLargestFile(sFileList: TStringList): string;
@@ -322,13 +322,13 @@ end;
     2. Resultado em MegaBytes > Booleano (Padrão - Verdadeiro)
   Retorno: Tamanho do arquivo (Integer)
 ============================================| Leandro Medeiros (20/10/2011) |==}
-function GetFileSizeB(sFileName: string): Integer;
+function GetFileSizeB(AFileName: string): Integer;
 var
   Sr  : TSearchRec;
   idx : integer;
 begin
   try
-    idx := FindFirst(sFileName, faArchive, Sr);                                 //Procuro o arquivo e tento abri-lo em memória
+    idx := FindFirst(AFileName, faArchive, Sr);                                 //Procuro o arquivo e tento abri-lo em memória
     if Bool(idx) then Result := -1                                              //Se ele não for localizado retorno tamanho negativo como sinal de erro
     else Result := Sr.Size;                                                     //caso contrário senão retorno seu tamanho em Bytes
   finally                                                                       //Ao final sempre
@@ -564,7 +564,7 @@ function ExtractLastFolderName(AFileName: string): string;
 var
   idx : integer;
 begin
-  Result    := EmptyStr;
+  Result := EmptyStr;
 
   if Bool(Length(SysUtils.ExtractFileExt(AFileName))) then
     AFileName := SysUtils.ExtractFileDir(AFileName);
