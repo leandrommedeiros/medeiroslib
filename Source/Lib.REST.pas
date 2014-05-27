@@ -227,6 +227,7 @@ begin
 
         if ATries > 0 then
         begin
+          Sleep(3000);
           Result := Self.Execute(AClass, AMethod, ATries);
           Exit;
         end;
