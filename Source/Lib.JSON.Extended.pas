@@ -2766,10 +2766,13 @@ end;
 function TJSONExtended.GetDtTime(const APropertyName: string;
   const ADefaultValue: TDateTime = 0): TDateTime;
 var
-  sAux : string;
+  sAux       : string;
+  Formatting : TFormatSettings;
 begin
+  Formatting := TFormatSettings.Create('pt-br');                                //Pode Ser 1046 também
+
   sAux := Self.GetStr(APropertyName);
-  if sAux <> EmptyStr then        Result := StrToDateTime(sAux)
+  if sAux <> EmptyStr then        Result := StrToDateTime(sAux, Formatting)
   else if ADefaultValue <> 0 then Result := ADefaultValue
   else                            Result := Now;
 end;
@@ -2779,9 +2782,12 @@ function TJSONExtended.GetDate(const APropertyName: string;
   const ADefaultValue: TDate = 0): TDate;
 var
   sAux : string;
+  Formatting : TFormatSettings;
 begin
+  Formatting := TFormatSettings.Create('pt-br');                                //Pode Ser 1046 também
+
   sAux := Self.GetStr(APropertyName);
-  if sAux <> EmptyStr then        Result := StrToDate(sAux)
+  if sAux <> EmptyStr then        Result := StrToDate(sAux, Formatting)
   else if ADefaultValue <> 0 then Result := ADefaultValue
   else                            Result := Date();
 end;

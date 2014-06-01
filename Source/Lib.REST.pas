@@ -12,6 +12,15 @@ interface
 uses
   System.Classes, IdHTTP, Lib.REST.Parameters, Lib.JSON.Extended;
 
+{ Constantes }
+const
+  WS_EXEC_LOG = 'Requisição ao Web Service' + #13+#10
+              + 'Host: "%s".'   + #13+#10
+              + 'Porta: "%s".'  + #13+#10
+              + 'Classe: "%s".' + #13+#10
+              + 'Método: "%s".' + #13+#10
+              + 'Parâmetros (JSON): %s.';
+
 { Classes }
 type
   TONRADSession = record
@@ -47,7 +56,8 @@ type
     constructor Create(AOwner: TComponent); virtual;
     destructor  Destroy; override;
     function Login: Boolean;
-    function Execute(const AClass, AMethod: string; ATries: integer = 3): Boolean;
+    function Execute(const AClass, AMethod: string; ATries: integer = 3;
+      const ExecutionLog: Boolean = True): Boolean;
     property SessionData : TONRADSession read FSessionData;
   published
     property AuthUser          : string read FUser          write FUser;
@@ -207,7 +217,9 @@ end;
 
 //==| Função - Executar |=======================================================
 function TRESTConnection.Execute(const AClass, AMethod: string;
-  ATries: integer = 3): Boolean;
+  ATries: integer = 3; const ExecutionLog: Boolean = True): Boolean;
+var
+  sParams: string;
 begin
   Result := False;
 
@@ -217,7 +229,16 @@ begin
     Self.MethodParams.Params['sessionToken']  := Self.SessionData.Token;
 
     try
-      Self.MethodResult := Self.HTTPGet(Self.MethodParams.ToString);
+      sParams := Self.MethodParams.ToString;
+
+      if ExecutionLog then
+        Lib.Files.Log(System.SysUtils.Format(WS_EXEC_LOG, [Self.WSHost,
+                                                           Self.WSPort,
+                                                           AClass,
+                                                           AMethod,
+                                                           sParams]));
+
+      Self.MethodResult := Self.HTTPGet(sParams);
     except
       on e: Exception do
       begin

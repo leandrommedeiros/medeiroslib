@@ -52,6 +52,8 @@ uses
 
 //==| Procedimentos - Alimentar Parâmetros |====================================
 procedure TRESTStudy.FeedParameters;
+var
+  Formatting : TFormatSettings;
 begin
   Self.MethodParams.Params['studyId']             := IntToStr(Self.jStudy.ID);
   Self.MethodParams.Params['originId']            := IntToStr(Self.jStudy.OriginID);
@@ -75,11 +77,17 @@ begin
   Self.MethodParams.Params['fileName']            := Self.jStudy.FileName;
   Self.MethodParams.Params['fileSize']            := IntToStr(Self.jStudy.FileSize);
 
-  if Self.jStudy.StudyDate <> 0 then
-    Self.MethodParams.Params['date'] := DateTimeToStr(Self.jStudy.StudyDate);
+  try
+    Formatting := TFormatSettings.Create('pt-br');                              //Pode Ser 1046 também
 
-  if Self.jStudy.DeliveryDate <> 0 then
-    Self.MethodParams.Params['deliveryDate'] := DateTimeToStr(Self.jStudy.DeliveryDate);
+    if Self.jStudy.StudyDate <> 0 then
+      Self.MethodParams.Params['date'] := DateTimeToStr(Self.jStudy.StudyDate, Formatting);
+
+    if Self.jStudy.DeliveryDate <> 0 then
+      Self.MethodParams.Params['deliveryDate'] := DateTimeToStr(Self.jStudy.DeliveryDate, Formatting);
+  except
+    on e: Exception do Lib.Files.Log('Erro: Date Parsing: ' + e.Message);
+  end;
 end;
 
 
@@ -207,11 +215,11 @@ begin
                                                        Self.MethodResult.GetStr('error')]))
     else if Self.MethodResult.GetBool('studyId') then
     begin
-      Result      := True;
       Self.jStudy := TJSONStudy.Create(Self.MethodResultStr);
       Lib.Files.Log(Format(LOG_ONRAD_INSERT_WEB_OK, [Self.jStudy.PatientName,
                                                      Self.jStudy.StudyUID,
                                                      Self.jStudy.ID]));
+      Result := True;
     end;
   except
     on e: exception do

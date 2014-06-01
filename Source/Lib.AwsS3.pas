@@ -215,7 +215,7 @@ begin
   if (AFileName = EmptyStr) then Exit;                                          //Se não for informado o nome de arquivo, finalizo a rotina
 
   try                                                                           //Tento
-    if not Lib.Files.ValidateDir(ASourcePath, False) or                           //Validar o diretório de origem
+    if not Lib.Files.ValidateDir(ASourcePath, False) or                         //Validar o diretório de origem
        not System.SysUtils.DirectoryExists(ASourcePath) then                    //e se não existir
       raise Exception.Create('Diretório de origem ("' + ASourcePath + '") não existe ou está inacessível.'); //disparo um erro
 
