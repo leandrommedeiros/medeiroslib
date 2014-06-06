@@ -281,9 +281,14 @@ begin
     while not Bool(iError) do
     begin
       if ((SR.Attr and faDirectory) <> faDirectory) and
-        (SR.TimeStamp > Result) then
+        {$IFDEF VER150}
+         (SR.Time > Result) then
+        Result := SR.Time;
+        
+        {$ELSE}
+         (SR.TimeStamp > Result) then
         Result := SR.TimeStamp;
-
+        {$ENDIF}
       iError := SysUtils.FindNext(SR);
     end;
   finally

@@ -10,7 +10,7 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  System.Classes;
+  Classes;
 
 { Classes }
 type
@@ -36,7 +36,7 @@ implementation
 
 { Bibliotecas para implementação }
 uses
-  System.SysUtils;
+  SysUtils;
 
 {*******************************************************************************
 
@@ -86,7 +86,7 @@ end;
 //==| Destrutor |===============================================================
 destructor TAssociativeArray.Destroy;
 begin
-  System.SysUtils.FreeAndNil(Self.FParameters);
+  FreeAndNil(Self.FParameters);
 
   inherited Destroy;
 end;
