@@ -39,6 +39,7 @@ type
     FStudyUID           : string;
     FFileName           : String;
     FFileSize           : integer;
+    FImagesCount        : integer;
     FUserLastModifiedID : integer;
     FDoctorSignID       : integer;
     FDoctorCheckID      : integer;
@@ -83,6 +84,7 @@ type
     property StudyUID         : String    read FStudyUID           write SetStudyUID;
     property FileName         : String    read FFileName           write SetFileName;
     property FileSize         : Integer   read FFileSize           write FFileSize;
+    property ImagesCount      : Integer   read FImagesCount        write FImagesCount;
     property UserLastModified : Integer   read FUserLastModifiedID write FUserLastModifiedID;
     property DoctorSign       : Integer   read FDoctorSignID       write FDoctorSignID;
     property DoctorCheck      : Integer   read FDoctorCheckID      write FDoctorCheckID;
@@ -220,6 +222,7 @@ begin
   Self.StudyUID         := AStudy.GetStr('studyUID');
   Self.FileName         := AStudy.GetStr('fileName');
   Self.FileSize         := AStudy.GetInt('fileSize');
+  Self.ImagesCount      := AStudy.GetInt('imagesCount');
   Self.DoctorSign       := AStudy.GetInt('doctorIdSign');
   Self.DoctorCheck      := AStudy.GetInt('doctorIdCheck');
   Self.UserLastModified := AStudy.GetInt('userTyper');
@@ -251,6 +254,7 @@ begin
   Result.AddPair('studyUID',            Self.StudyUID);
   Result.AddPair('fileName',            Self.FileName);
   Result.AddPair('fileSize',            Self.FileSize);
+  Result.AddPair('imagesCount',         Self.ImagesCount);
   Result.AddPair('doctorIdSign',        Self.DoctorSign);
   Result.AddPair('doctorIdCheck',       Self.DoctorCheck);
   Result.AddPair('userIdLastModified',  Self.UserLastModified);
