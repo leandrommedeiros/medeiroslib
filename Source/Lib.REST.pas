@@ -19,7 +19,8 @@ const
               + 'Porta: "%s".'  + #13+#10
               + 'Classe: "%s".' + #13+#10
               + 'Método: "%s".' + #13+#10
-              + 'Parâmetros (JSON): %s.';
+              + 'Parâmetros (JSON): %s.'    + #13+#10
+              + 'Retorno: %s.';
 
 { Classes }
 type
@@ -231,13 +232,6 @@ begin
     try
       sParams := Self.MethodParams.ToString;
 
-      if ExecutionLog then
-        Lib.Files.Log(System.SysUtils.Format(WS_EXEC_LOG, [Self.WSHost,
-                                                           Self.WSPort,
-                                                           AClass,
-                                                           AMethod,
-                                                           sParams]));
-
       Self.MethodResult := Self.HTTPGet(sParams);
     except
       on e: Exception do
@@ -275,6 +269,14 @@ begin
   finally
     Self.MethodParams.Clear;
     Self.Disconnect;
+
+    if ExecutionLog then
+      Lib.Files.Log(System.SysUtils.Format(WS_EXEC_LOG, [Self.WSHost,
+                                                         Self.WSPort,
+                                                         AClass,
+                                                         AMethod,
+                                                         sParams,
+                                                         Self.MethodResultStr]));
   end;
 end;
 //==============================================================================
