@@ -41,7 +41,7 @@ implementation
 { Bibliotecas para Implementação }
 uses
   Lib.REST.Constants, Lib.JSON, Lib.JSON.Extended, Lib.Files, System.SysUtils,
-  DBXJSON;
+  DBXJSON, Winapi.Windows;
 
 
 {*******************************************************************************
@@ -140,7 +140,7 @@ begin
     if Self.Execute(REST_CLASS_STUDY, 'GetInfo') then
     begin
       Self.jStudy.SetInfo(Self.MethodResultStr);
-      Result := True;
+      Result := WinAPI.Windows.Bool(Self.jStudy.ID);
     end;
   except
     on E: exception do
@@ -182,7 +182,11 @@ begin
 
   try
     Self.FeedParameters;
-    Result := Self.Execute(REST_CLASS_STUDY, 'SetDicomSituation');
+    if Self.Execute(REST_CLASS_STUDY, 'SetDicomSituation') then
+      if not Self.MethodResult.GetBool('settedSituation') then
+        Result := True
+      else
+        Result := Self.MethodResult.GetInt('settedSituation') = Self.jStudy.DicomSituationID;
   except
     on e: exception do
       Lib.Files.Log('Erro ao atualizar situação das imagens via Webservice: ' + E.Message);
