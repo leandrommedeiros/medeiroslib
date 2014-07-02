@@ -123,6 +123,7 @@ end;
 ===============================================================================}
 function ValidateDir(var ADir: string; ACreate: Boolean = True): Boolean;
 begin
+  Result := true;   // 26-06-2014 - Por padrão RETURN é TRUE
   if Trim(ADir[Length(ADir)]) <> '\' then                                       //Se o último caracter da string não for uma barra
     ADir := Trim(ADir) + '\';                                                   //vou acrescentá-la
   if ACreate and not DirectoryExists(ADir) then                                 //Se o diretório não existir eu o crio
