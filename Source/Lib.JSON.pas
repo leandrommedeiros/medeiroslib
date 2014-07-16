@@ -10,7 +10,7 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  Data.DB, DataSnap.DBClient, System.SysUtils, Lib.JSON.Extended, Data.DBXJSON;
+  Data.DB, DataSnap.DBClient, System.SysUtils, Lib.JSON.Extended, System.JSON;
 
 { Constantes }
 const
@@ -21,13 +21,14 @@ const
 
 { Protótipos }
   function  StrToJSONString(const AValue: string): string;
-  procedure RecordToJSON(var ACds: TClientDataSet; var AJSON: Data.DBXJSON.TJSONObject;
+  procedure RecordToJSON(var ACds: TClientDataSet; var AJSON: System.JSON.TJSONObject;
     const FlagReinstance: Boolean = True); overload;
-  function  RecordToJSON(var ACds: TClientDataSet): Data.DBXJSON.TJSONObject; overload;
-  function  CdsToJSONArray(var ACds: TClientDataSet): Data.DBXJSON.TJSONArray;
-  procedure JSONToCds(AJSON: Data.DBXJSON.TJSONObject; var ACds: TClientDataSet);
+  function  RecordToJSON(var ACds: TClientDataSet): System.JSON.TJSONObject; overload;
+  function  CdsToJSONArray(var ACds: TClientDataSet): System.JSON.TJSONArray;
+  procedure JSONToCds(AJSON: System.JSON.TJSONObject; var ACds: TClientDataSet);
   function  GetJSONValue(const AObj, APropertyName: string;
     const ADefaultValue: string = ''): string; overload;
+
   function  GetJSONIntValue(const AObj, APropertyName: string;
     const ADefaultValue: integer = 0): integer; overload;
   function  GetJSONFloatValue(const AObj, APropertyName: string;
@@ -42,13 +43,13 @@ const
                                           Tamanho : array of integer) : TClientDataSet;
 
   { Depreciadas }
-  function  GetJSONValue(const AObj: Data.DBXJSON.TJSONObject; const APropertyName: string;
+  function  GetJSONValue(const AObj: System.JSON.TJSONObject; const APropertyName: string;
     const ADefaultValue: string = ''): string; overload; deprecated 'Utilize a classe TExtendJSON';
-  function  GetJSONIntValue(const AObj: Data.DBXJSON.TJSONObject; const APropertyName: string;
+  function  GetJSONIntValue(const AObj: System.JSON.TJSONObject; const APropertyName: string;
     const ADefaultValue: integer = 0): integer; overload; deprecated 'Utilize a classe TExtendJSON';
-  function  GetJSONBoolValue(const AObj: Data.DBXJSON.TJSONObject; const APropertyName: string;
+  function  GetJSONBoolValue(const AObj: System.JSON.TJSONObject; const APropertyName: string;
     const ADefaultValue: Boolean = false): Boolean; overload; deprecated 'Utilize a classe TExtendJSON';
-  function  GetJsonDtValue(const AObj: Data.DBXJSON.TJSONObject; const APropertyName: string;
+  function  GetJsonDtValue(const AObj: System.JSON.TJSONObject; const APropertyName: string;
     const ADefaultValue: TDateTime = 0): TDateTime; overload; deprecated 'Utilize a classe TExtendJSON';
 
 { Implementação }
@@ -69,23 +70,23 @@ function NewJSONToCds(ArqJson : String; Campos  : array of string;
                                         Tipos   : array of Data.DB.TFieldType;
                                         Tamanho : array of integer) : TClientDataSet;
 var
-  jsonObj,jSubObj: Data.DBXJSON.TJSONObject;
-  jp,jSubPar: Data.DBXJSON.TJSONPair;
-  ja : Data.DBXJSON.TJSONArray;
+  jsonObj,jSubObj: System.JSON.TJSONObject;
+  jp,jSubPar: System.JSON.TJSONPair;
+  ja : System.JSON.TJSONArray;
   cdsInfos : TClientDataSet;
   I, J : Integer;
 begin
      jsonObj := TJSONObject.ParseJSONValue(TEncoding.ASCII.GetBytes(ArqJson),0) as TJSONObject;  // Transformo O Texto Recebido em um Objeto JSon
 
-     jp := Data.DBXJSON.TJSONPair.Create;                                       // Crio o Objeto Json Par
+     jp := System.JSON.TJSONPair.Create;                                       // Crio o Objeto Json Par
      jp := jsonObj.Get(0);                                                      //pega o par zero (Primeiro Retorno da String)
 
-     ja := Data.DBXJSON.TJSONArray.Create;                                      // Crio um Objeto Json Array
+     ja := System.JSON.TJSONArray.Create;                                      // Crio um Objeto Json Array
      ja := nil;                                                                 // Libero Objeto Json Array
-     ja := (jp.JsonValue as Data.DBXJSON.TJSONArray);                           // Transformo os Valores do Par 0 em um Array
+     ja := (jp.JsonValue as System.JSON.TJSONArray);                           // Transformo os Valores do Par 0 em um Array
 
-     jSubObj:= Data.DBXJSON.TJSONObject.Create;                                 // Crio um Novo Objeto JsonObject
-     jSubPar := Data.DBXJSON.TJSONPair.Create;                                  // Crio um Novo Objeto JsonPar
+     jSubObj:= System.JSON.TJSONObject.Create;                                 // Crio um Novo Objeto JsonObject
+     jSubPar := System.JSON.TJSONPair.Create;                                  // Crio um Novo Objeto JsonPar
 
      if not Assigned(cdsInfos) then
        cdsInfos := TClientDataSet.Create(nil);                                    // Crio o Client
@@ -133,15 +134,15 @@ end;
   consulta efetuada via DBExpress para um Objeto JSON (DataSnap).
   Parâmetros de Entrada:
     1. Dados a serem tranpostos : TClientDataSet.
-    2. Objeto JSON de destino   : Data.DBXJSON.TJSONObject (ponteiro).
+    2. Objeto JSON de destino   : System.JSON.TJSONObject (ponteiro).
     3. Flag - Reinstanciar      : Booleano (Padrão Verdadeiro).
 ============================================| Leandro Medeiros (19/12/2012) |==}
-procedure RecordToJSON(var ACds: TClientDataSet; var AJSON: Data.DBXJSON.TJSONObject;
+procedure RecordToJSON(var ACds: TClientDataSet; var AJSON: System.JSON.TJSONObject;
   const FlagReinstance: Boolean = True);
 var
   idx : integer;
 begin
-  if FlagReinstance then AJSON := Data.DBXJSON.TJSONObject.Create;
+  if FlagReinstance then AJSON := System.JSON.TJSONObject.Create;
   for idx := 0 to ACds.Fields.Count - 1 do
     AJSON.AddPair(ACds.Fields[idx].FieldName,
                   ifthen(ACds.Fields[idx].IsNull,
@@ -154,13 +155,13 @@ end;
   consulta efetuada via DBExpress para um Objeto JSON (DataSnap).
   Parâmetros de Entrada:
     1. Dados a serem tranpostos : TClientDataSet.
-  Retorno: Dados transpostos (Data.DBXJSON.TJSONObject).
+  Retorno: Dados transpostos (System.JSON.TJSONObject).
 ============================================| Leandro Medeiros (19/12/2012) |==}
-function RecordToJSON(var ACds: TClientDataSet): Data.DBXJSON.TJSONObject;
+function RecordToJSON(var ACds: TClientDataSet): System.JSON.TJSONObject;
 var
   idx : integer;
 begin
-  Result := Data.DBXJSON.TJSONObject.Create;
+  Result := System.JSON.TJSONObject.Create;
   if ACds.IsEmpty then
   begin
     Result.AddPair('error', JSON_ERROR_VALUE);
@@ -178,14 +179,14 @@ end;
   Parâmetros de Entrada:
     1. Dados a serem tranpostos : TClientDataSet.
 ============================================| Leandro Medeiros (19/12/2012) |==}
-function CdsToJSONArray(var ACds: TClientDataSet): Data.DBXJSON.TJSONArray;
+function CdsToJSONArray(var ACds: TClientDataSet): System.JSON.TJSONArray;
 var
   pBookmark  : TBookmark;
 begin
   pBookmark := ACds.GetBookmark;
   ACds.First;
 
-  Result := Data.DBXJSON.TJSONArray.Create;
+  Result := System.JSON.TJSONArray.Create;
   while not ACds.EOF do
   begin
     Result.AddElement(RecordToJSON(ACds));
@@ -199,21 +200,21 @@ begin
 end;
 
 //==| Função - JSON para ClientDataSet |========================================
-procedure JSONToCds(AJSON: Data.DBXJSON.TJSONObject; var ACds: TClientDataSet);
+procedure JSONToCds(AJSON: System.JSON.TJSONObject; var ACds: TClientDataSet);
 var
-  JsonObject, JsonSubObj: Data.DBXJSON.TJSONObject;
-  JsonPair, JsonSubPair: Data.DBXJSON.TJSONPair;
-  JsonArray: Data.DBXJSON.TJSONArray;
+  JsonObject, JsonSubObj: System.JSON.TJSONObject;
+  JsonPair, JsonSubPair: System.JSON.TJSONPair;
+  JsonArray: System.JSON.TJSONArray;
   oidx, vidx: Integer;
   fField: TField;
 begin
-  JsonObject := Data.DBXJSON.TJSONObject.ParseJSONValue(TEncoding.ASCII.GetBytes(AJson.ToString), 0) as Data.DBXJSON.TJSONObject;
+  JsonObject := System.JSON.TJSONObject.ParseJSONValue(TEncoding.ASCII.GetBytes(AJson.ToString), 0) as System.JSON.TJSONObject;
   JsonPair   := JsonObject.Get(0);
-  JsonArray  := (JsonPair.JsonValue as Data.DBXJSON.TJSONArray);
+  JsonArray  := (JsonPair.JsonValue as System.JSON.TJSONArray);
 
   for vidx := 0 to JsonArray.Size - 1 do
   begin
-    JsonSubObj := Data.DBXJSON.TJSONObject(JsonArray.Get(vidx));
+    JsonSubObj := System.JSON.TJSONObject(JsonArray.Get(vidx));
     for oidx := 0 to JsonSubObj.Size - 1 do
     begin
       JsonSubPair := JsonSubObj.Get(oidx);
@@ -321,7 +322,7 @@ end;
 
 
 //==| Obter Valor JSON Filtrado |===============================================
-function GetJSONValue(const AObj: Data.DBXJSON.TJSONObject; const APropertyName: string;
+function GetJSONValue(const AObj: System.JSON.TJSONObject; const APropertyName: string;
   const ADefaultValue: string = ''): string; overload; deprecated 'Utilize a classe TExtendJSON';
 begin
   if Assigned(AObj.Get(APropertyName)) then
@@ -331,7 +332,7 @@ begin
 end;
 
 //==| Obter Valor JSON Filtrado |===============================================
-function GetJSONIntValue(const AObj: Data.DBXJSON.TJSONObject; const APropertyName: string;
+function GetJSONIntValue(const AObj: System.JSON.TJSONObject; const APropertyName: string;
   const ADefaultValue: integer = 0): integer; overload; deprecated 'Utilize a classe TExtendJSON';
 begin
   if Assigned(AObj.Get(APropertyName)) then
@@ -341,7 +342,7 @@ begin
 end;
 
 //==| Obter Valor JSON Filtrado |===============================================
-function GetJSONBoolValue(const AObj: Data.DBXJSON.TJSONObject; const APropertyName: string;
+function GetJSONBoolValue(const AObj: System.JSON.TJSONObject; const APropertyName: string;
   const ADefaultValue: Boolean = false): Boolean; overload; deprecated 'Utilize a classe TExtendJSON';
 begin
   if Assigned(AObj.Get(APropertyName)) then
@@ -351,7 +352,7 @@ begin
 end;
 
 //==| Obter Valor JSON Filtrado |===============================================
-function GetJsonDtValue(const AObj: Data.DBXJSON.TJSONObject; const APropertyName: string;
+function GetJsonDtValue(const AObj: System.JSON.TJSONObject; const APropertyName: string;
   const ADefaultValue: TDateTime = 0): TDateTime; overload; deprecated 'Utilize a classe TExtendJSON';
 begin
   if Assigned(AObj.Get(APropertyName)) then

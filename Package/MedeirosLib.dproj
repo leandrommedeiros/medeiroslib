@@ -2,7 +2,7 @@
     <PropertyGroup>
         <ProjectGuid>{C4A882B4-EA53-483D-95AF-FC9C664CC021}</ProjectGuid>
         <MainSource>MedeirosLib.dpk</MainSource>
-        <ProjectVersion>14.6</ProjectVersion>
+        <ProjectVersion>15.4</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -11,6 +11,11 @@
         <AppType>Package</AppType>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Android' and '$(Base)'=='true') or '$(Base_Android)'!=''">
+        <Base_Android>true</Base_Android>
+        <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="('$(Platform)'=='iOSDevice' and '$(Base)'=='true') or '$(Base_iOSDevice)'!=''">
@@ -55,6 +60,7 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <SanitizedProjectName>MedeirosLib</SanitizedProjectName>
         <DCC_Description>Componentes criados e\ou modificados por Leandro Medeiros</DCC_Description>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <DCC_DcpOutput>$(BDSCOMMONDIR)\Dcp\$(Platform)</DCC_DcpOutput>
@@ -72,26 +78,31 @@
         <DCC_F>false</DCC_F>
         <DCC_K>false</DCC_K>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Android)'!=''">
+        <DCC_UsePackage>CloudService;$(DCC_UsePackage)</DCC_UsePackage>
+        <VerInfo_Keys>package=com.embarcadero.$(MSBuildProjectName);label=$(MSBuildProjectName);versionCode=1;versionName=1.0.0;persistent=False;restoreAnyVersion=False;installLocation=preferExternal;largeHeap=False;theme=TitleBar;hardwareAccelerated=true</VerInfo_Keys>
+        <BT_BuildType>Debug</BT_BuildType>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Base_iOSDevice)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;CloudService;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_CBuilderOutput>None</DCC_CBuilderOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_iOSSimulator)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;CloudService;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_CBuilderOutput>None</DCC_CBuilderOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_OSX32)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;CloudService;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;CloudService;$(DCC_UsePackage)</DCC_UsePackage>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;CloudService;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
@@ -114,7 +125,7 @@
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-        <DCC_DebugInformation>false</DCC_DebugInformation>
+        <DCC_DebugInformation>0</DCC_DebugInformation>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -134,6 +145,7 @@
         <DCCReference Include="IndyCore.dcp"/>
         <DCCReference Include="IndyIPClient.dcp"/>
         <DCCReference Include="IndyIPCommon.dcp"/>
+        <DCCReference Include="CloudService.dcp"/>
         <DCCReference Include="..\Source\ComponentsRegister.pas"/>
         <DCCReference Include="..\Source\Lib.AwsS3.pas"/>
         <DCCReference Include="..\Source\Lib.JSON.Doc.pas"/>
@@ -232,13 +244,15 @@
                     <VersionInfoKeys Name="CFBundleDevelopmentRegion"/>
                 </VersionInfoKeys>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\bcboffice2k180.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\bcbofficexp180.bpl">Embarcadero C++Builder Office XP Servers Package</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k180.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcboffice2k200.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcbofficexp200.bpl">Embarcadero C++Builder Office XP Servers Package</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k200.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp200.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment/>
             <Platforms>
+                <Platform value="Android">False</Platform>
                 <Platform value="iOSDevice">False</Platform>
                 <Platform value="iOSSimulator">False</Platform>
                 <Platform value="OSX32">False</Platform>

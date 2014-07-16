@@ -3,7 +3,7 @@ unit Lib.JSON.Doc;
 interface
 
 uses
-  Classes, SysUtils, DBXJSON;
+  Classes, System.SysUtils, Lib.JSON.Extended, System.JSON;
 
 type
   EJSONDocument = class(Exception);

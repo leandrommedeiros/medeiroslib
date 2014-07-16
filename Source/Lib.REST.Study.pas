@@ -41,7 +41,7 @@ implementation
 { Bibliotecas para Implementação }
 uses
   Lib.REST.Constants, Lib.JSON, Lib.JSON.Extended, Lib.Files, System.SysUtils,
-  DBXJSON, Winapi.Windows;
+  System.JSON, Winapi.Windows;
 
 
 {*******************************************************************************

@@ -5,7 +5,7 @@ package MedeirosLib;
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
-{$DEBUGINFO ON}
+{$DEBUGINFO OFF}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
@@ -29,15 +29,6 @@ package MedeirosLib;
 {$IMPLICITBUILD ON}
 
 requires
-  {$IFDEF VER150}
-  vcl,
-  rtl,
-  dbrtl,
-  dsnap,
-  indy,
-  dbexpress;
-
-  {$ELSE}
   xmlrtl,
   rtl,
   vcl,
@@ -51,8 +42,8 @@ requires
   IndyProtocols,
   IndyCore,
   IndyIPClient,
-  IndyIPCommon;
-  {$ENDIF}
+  IndyIPCommon,
+  CloudService;
 
 contains
   ComponentsRegister in '..\Source\ComponentsRegister.pas',
@@ -70,7 +61,7 @@ contains
   Lib.REST in '..\Source\Lib.REST.pas',
   Lib.REST.Study in '..\Source\Lib.REST.Study.pas',
   Lib.ZIP in '..\Source\Lib.ZIP.pas',
-  {$ENDIF}
+ {$ENDIF}
 
   Lib.DB in '..\Source\Lib.DB.pas',
   Lib.Files in '..\Source\Lib.Files.pas',

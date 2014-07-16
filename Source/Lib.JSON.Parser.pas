@@ -10,7 +10,7 @@ interface
 
 { Bibliotecas para Interfase }
 uses
-  Classes, DBXJSON, Lib.JSON.Doc;
+  Classes, System.JSON, Lib.JSON.Doc;
 
 { Classes }
 type
