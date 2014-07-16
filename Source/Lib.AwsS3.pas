@@ -287,18 +287,37 @@ end;
 //==| Função - Upload Particionado |============================================
 function TS3Connection.MultipartUpload(ASourcePath: string; const ATargetDir,
   AFileName: String; ADelAfterTransfer: Boolean = False): Boolean;
+
+{ Constantes }
+const
+  PACKAGE_SIZE = 5120;
+
+{ Variáveis }
 var
-  sTargetFile   : string;
+  sTargetFile,
+  sUploadID     : string;
+  iAux,
+  iPartCount    : integer;
   slMetadata    : TStrings;
   FileContent   : TBytes;
   CloudResponse : TCloudResponseInfo;
+
+{ Finalizar Conexões }
+procedure FinishConnection;
+begin
+  FileContent := nil;                                                           //Limpo a referência para o arquivo em Stream, permitindo que a memória seja liberada
+  FreeAndNil(CloudResponse);                                                    //Destruo o objeto com o retorno da Cloud
+  FreeAndNil(slMetadata);                                                       //e também a List com os metadados
+end;
+
+{ Início de Rotina }
 begin
   Result := False;                                                              //Assumo falha
 
   if (AFileName = EmptyStr) then Exit;                                          //Se não for informado o nome de arquivo, finalizo a rotina
 
   try                                                                           //Tento
-    if not Lib.Files.ValidateDir(ASourcePath, False) or                           //Validar o diretório de origem
+    if not Lib.Files.ValidateDir(ASourcePath, False) or                         //Validar o diretório de origem
        not System.SysUtils.DirectoryExists(ASourcePath) then                    //e se não existir
       raise Exception.Create('Diretório de origem ("' + ASourcePath + '") não existe ou está inacessível.'); //disparo um erro
 
@@ -307,41 +326,73 @@ begin
     slMetadata                  := TStringList.Create;                          //crio também um TStringList para guardar os metadados do arquivo
     slMetadata.Values[SMD_PATH] := ASourcePath;                                 //e atribuo à ele a origem,
     slMetadata.Values[SMD_FROM] := GetComputerandUserName;                      //o nome do computador e o nome de usuário
-    FileContent                 := Lib.Files.LoadFile(ASourcePath + AFileName); //Carrego o arquivo à ser enviado na RAM
+    slMetadata.Values[SMD_SIZE] := IntToStr(Lib.Files.GetFileSizeB(ASourcePath + AFileName)); //e o tamanho
     sTargetFile                 := Self.ValidateS3Path(ATargetDir)              //Valido o nome de arquivo de destino segundo regras do S3
                                  + Self.ValidateFileName(AFileName);
 
     try                                                                         //Tento
-      Self.StorageService.UploadObject(Self.FBucketName,                        //Enviar o arquivo para a Bucket configurada na instância
-                                       sTargetFile,                             //no destino validado
-                                       FileContent,                             //a partir do Stream que montei em memória
-                                       False,
-                                       slMetadata,
-                                       nil,
-                                       amzbaPublicRead,
-                                       CloudResponse);                          //e fornecendo um objeto para ser alimentado com a situação da transferência
+      sUploadID := Self.StorageService.InitiateMultipartUpload(Self.FBucketName,//Enviar o arquivo para a Bucket configurada na instância
+                                                               sTargetFile,     //no destino validado
+                                                               slMetadata,
+                                                               nil,
+                                                               amzbaPublicRead,
+                                                               CloudResponse);  //e fornecendo um objeto para ser alimentado com a situação da transferência
+
+      iAux       := Lib.Files.GetFileSizeB(ASourcePath + AFileName);
+      iPartCount := iAux div PACKAGE_SIZE;
+
+      for iAux := 0 to iPartCount do
+      begin
+        FileContent := Lib.Files.LoadFilePart(ASourcePath + AFileName, iAux * PACKAGE_SIZE, PACKAGE_SIZE); //Então carrego o arquivo à ser enviado na RAM
+        Self.StorageService.UploadPart(Self.FBucketName,
+                                       sTargetFile,
+                                       sUploadID,
+                                       iAux,
+                                       FileContent);
+      end;
 
       case CloudResponse.StatusCode of                                          //Se o código de situação
-        200, 201: begin                                                         //for 200 ou 201
-          Result := True;                                                       //é porque a transferência foi bem sucedida
+        200, 201, 304: begin                                                    //for de sucesso
+          Result := True;                                                       //retorno verdadeiro
 
           if ADelAfterTransfer then                                             //então, se foi solicitado na chamada do método,
             Lib.Files.ForceDelete(ASourcePath + AFileName);                     //apago o arquivo do disco de origem
         end
 
-        else                                                                    //Senão
-          Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                            //gravo um log em disco com a mensagem retornada pela Amazon
+        else begin                                                              //Senão
+          Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                            //gravo um log em disco com a mensagem de erro retornada pelo host
                                [AFileName, Self.FBucketName, CloudResponse.StatusMessage]));
+
+          Inc(ATries, - 1);                                                     //decremento o número de tentativas
+
+          if ATries > 0 then                                                    //e se ainda não tiver feito todas as tentativas
+          begin
+            Sleep(3000);                                                        //aguardo 3 segundos
+            Result := Self.Upload(ASourcePath, ATargetDir, AFileName, ADelAfterTransfer, ATries); //executo o método recursivamente
+            FinishConnection;                                                   //finalizo as conexões
+            Exit;                                                               //e então saio do método
+          end;
+        end;
       end;
     except                                                                      //Se ocorrer um erro inesperado no processo
       on e: Exception do
+      begin
         Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                              //gravo um log tentando obter a mensagem do erro
                             [AFileName, Self.FBucketName, e.Message]));
+
+        Inc(ATries, - 1);                                                       //decremento o número de tentativas
+
+        if ATries > 0 then                                                      //e se ainda não tiver feito todas as tentativas
+        begin
+          Sleep(3000);                                                          //aguardo 3 segundos
+          Result := Self.Upload(ASourcePath, ATargetDir, AFileName, ADelAfterTransfer, ATries); //executo o método recursivamente
+          FinishConnection;                                                     //finalizo as conexões
+          Exit;                                                                 //e então saio do método
+        end;
+      end;
     end;
-  finally                                                                       //Ao final sempre
-    FileContent := nil;                                                         //Limpo a referência para o arquivo em Stream, permitindo que a memória seja liberada
-    FreeAndNil(CloudResponse);                                                  //Destruo o objeto com o retorno da Cloud
-    FreeAndNil(slMetadata);                                                     //e também a List com os metadados
+  finally
+    FinishConnection;
   end;
 end;
 

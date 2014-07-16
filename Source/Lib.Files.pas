@@ -47,6 +47,7 @@ type
   function  CreatePublicFile(const AFileName: string; var AStream: TFileStream): Boolean; overload;
   function  ForceDelete(const AFileName: string): Boolean;
   function  LoadFile(const AFileName: String; ARequiredSizeMod: Integer = 1): TBytes;
+  function  LoadFilePart(const AFileName: String; const ABufferStart, ABufferSize: integer): TBytes;
   function  ExtractLastFolderName(AFileName: string): string;
 
 implementation
@@ -550,19 +551,36 @@ var
 begin
   if AFileName = EmptyStr then
   begin
-    SetLength(Result, 0);
+    System.SetLength(Result, 0);
     Exit;
   end;
 
   fsResult := TFileStream.Create(AFileName, fmOpenRead);
   try
-    if ARequiredSizeMod < 1 then SetLength(Result, fsResult.Size)
-    else                         SetLength(Result, ((fsResult.Size div ARequiredSizeMod) + 1) * ARequiredSizeMod);
+
+    if ARequiredSizeMod < 1 then System.SetLength(Result, fsResult.Size)
+    else                         System.SetLength(Result, ((fsResult.Size div ARequiredSizeMod) + 1) * ARequiredSizeMod);
 
     fsResult.ReadBuffer(Result[0], fsResult.Size);
   finally
     fsResult.Free;
   end;
+end;
+
+//==| Carregar Parte de Arquivo |===============================================
+function  LoadFilePart(const AFileName: String; const ABufferStart,
+  ABufferSize: integer): TBytes;
+var
+  fsResult: TFileStream;
+begin
+  if AFileName = EmptyStr then
+  begin
+    System.SetLength(Result, 0);
+    Exit;
+  end;
+
+  fsResult := TFileStream.Create();
+  fsResult.Read
 end;
 
 //==| Extrair nome da última pasta |============================================
