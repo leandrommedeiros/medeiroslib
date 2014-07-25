@@ -171,13 +171,14 @@ end;
 //==| Definir Situação DICOM |==================================================
 function TRESTStudy.UpdateDicomInformation(const ANewDcmSituation: integer): Boolean;
 begin
-  if Self.jStudy.DicomSituationID <>  ANewDcmSituation then // 01-07-2014 - MACIEL - Somente registrar LOG se sttus for difernte de ENVIANDO
+  if Self.jStudy.DicomSituationID =  ANewDcmSituation then
   begin
-    Self.jStudy.DicomSituationID := ANewDcmSituation;
-    Result                       := Self.UpdateDicomInformation;
-  end
-  else
-    Result := true;
+    Result := True;
+    Exit;
+  end;
+
+  Self.jStudy.DicomSituationID := ANewDcmSituation;
+  Result                       := Self.UpdateDicomInformation;
 end;
 
 //==| Definir Situação DICOM |==================================================
@@ -196,7 +197,7 @@ begin
     on e: exception do
     begin
       Lib.Files.Log('Erro ao atualizar situação das imagens via Webservice: ' + E.Message);
-      Result := false; // 01-07-2014 - MACIEL - Forçar o result ser false
+      Result := False;
     end;
   end;
 end;

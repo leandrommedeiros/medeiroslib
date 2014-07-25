@@ -10,7 +10,7 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  System.SysUtils, Data.Cloud.AmazonAPI, Data.Cloud.CloudAPI, System.Classes;
+  Lib.Files, System.SysUtils, Data.Cloud.AmazonAPI, Data.Cloud.CloudAPI, System.Classes;
 
 { Constantes }
 const
@@ -26,9 +26,23 @@ const
 
 { Classes }
 type
+  //Eventos
+  TS3MultipartOnWorkBegin = procedure(const APartsCount: integer) of Object;
+  TS3MultipartOnWork      = procedure(const ACurrentPart, APackageSize: integer) of Object;
+  TS3MultipartOnWorkEnd   = procedure of Object;
+
+  //Conexão S3
   TS3Connection = class(TAmazonConnectionInfo)
   private
+    //Eventos
+    FOnMultipartWorkBegin : TS3MultipartOnWorkBegin;
+    FOnMultipartWork      : TS3MultipartOnWork;
+    FOnMultipartWorkEnd   : TS3MultipartOnWorkEnd;
+
+    //Campos
     FBucketName    : string;
+
+    //Variáveis
     StorageService : TAmazonStorageService;
 
     function ValidateFileName(const AFileName: string): string;
@@ -39,15 +53,18 @@ type
       ABucketName: string): Boolean; overload;
     function GetFileSize(const ATargetDir, AFileName: string): Integer;
     function Upload(ASourcePath: string; const ATargetDir, AFileName: String;
-      ADelAfterTransfer: Boolean = False; ATries: integer = 3): Boolean;
+      const ADelAfterTransfer: Boolean = False; ATries: integer = 3): Boolean;
     function MultipartUpload(ASourcePath: string; const ATargetDir, AFileName: String;
-      ADelAfterTransfer: Boolean = False): Boolean;
+      APackageSize: integer = FIVE_MEGABYTES; const ADelAfterTransfer: Boolean = False): Boolean;
     function Download(ASourcePath, ATargetPath, AFileName: String): Boolean;
 
     constructor Create(const AccountName, AccountKey, ABucketName: string); overload;
     destructor  Destroy; override;
   published
-    property BucketName: string read FBucketName write FBucketName;
+    property BucketName           : string                  read FBucketName           write FBucketName;
+    property OnMultipartWorkBegin : TS3MultipartOnWorkBegin read FOnMultipartWorkBegin write FOnMultipartWorkBegin;
+    property OnMultipartWork      : TS3MultipartOnWork      read FOnMultipartWork      write FOnMultipartWork;
+    property OnMultipartWorkEnd   : TS3MultipartOnWorkEnd   read FOnMultipartWorkEnd   write FOnMultipartWorkEnd;
   end;
 
 { Protótipos - Procedimentos e Funções }
@@ -59,7 +76,8 @@ implementation
 
 { Bibliotecas para Implementação }
 uses
-  Lib.StrUtils, Lib.Files, Lib.Win, Lib.Utils, Vcl.Dialogs, IPPeerClient;
+  Lib.StrUtils, Lib.Win, Lib.Utils, Vcl.Dialogs, IPPeerClient,
+  Datasnap.DBClient, System.Generics.Collections;
 
 
 {*******************************************************************************
@@ -98,6 +116,8 @@ end;
 //==| Função - Validar Diretório S3 |===========================================
 function TS3Connection.ValidateS3Path(const APath: string): string;
 begin
+  if APath = EmptyStr then Exit;
+  
   Result := StringReplace(APath, ' ', '%20', [rfReplaceAll, rfIgnoreCase]);     //Substituo todos os espaços pelo código HTTP
   Result := StringReplace(Result, '\', '/', [rfReplaceAll, rfIgnoreCase]);      //e todas a barras invertidas por barras normais
 
@@ -190,7 +210,7 @@ end;
 
 //==| Função - Upload |=========================================================
 function TS3Connection.Upload(ASourcePath: string; const ATargetDir,
-  AFileName: String; ADelAfterTransfer: Boolean = False;
+  AFileName: String; const ADelAfterTransfer: Boolean = False;
   ATries: integer = 3): Boolean;
 
 { Variáveis }
@@ -286,19 +306,26 @@ end;
 
 //==| Função - Upload Particionado |============================================
 function TS3Connection.MultipartUpload(ASourcePath: string; const ATargetDir,
-  AFileName: String; ADelAfterTransfer: Boolean = False): Boolean;
+  AFileName: String; APackageSize: integer = FIVE_MEGABYTES;
+  const ADelAfterTransfer: Boolean = False): Boolean;
 var
+  slMetadata,
+  slHeaders     : TStrings;
+  iPartNo,
+  iTotalParts   : integer;
+  sUploadID,
   sTargetFile   : string;
-  slMetadata    : TStrings;
-  FileContent   : TBytes;
+  Buffer        : TBytes;
   CloudResponse : TCloudResponseInfo;
+  UploadedPart  : TAmazonMultipartPart;
+  PartsList     : System.Generics.Collections.TList<TAmazonMultipartPart>;
 begin
   Result := False;                                                              //Assumo falha
 
   if (AFileName = EmptyStr) then Exit;                                          //Se não for informado o nome de arquivo, finalizo a rotina
 
   try                                                                           //Tento
-    if not Lib.Files.ValidateDir(ASourcePath, False) or                           //Validar o diretório de origem
+    if not Lib.Files.ValidateDir(ASourcePath, False) or                         //Validar o diretório de origem
        not System.SysUtils.DirectoryExists(ASourcePath) then                    //e se não existir
       raise Exception.Create('Diretório de origem ("' + ASourcePath + '") não existe ou está inacessível.'); //disparo um erro
 
@@ -307,19 +334,62 @@ begin
     slMetadata                  := TStringList.Create;                          //crio também um TStringList para guardar os metadados do arquivo
     slMetadata.Values[SMD_PATH] := ASourcePath;                                 //e atribuo à ele a origem,
     slMetadata.Values[SMD_FROM] := GetComputerandUserName;                      //o nome do computador e o nome de usuário
-    FileContent                 := Lib.Files.LoadFile(ASourcePath + AFileName); //Carrego o arquivo à ser enviado na RAM
+    slHeaders                   := TStringList.Create;
     sTargetFile                 := Self.ValidateS3Path(ATargetDir)              //Valido o nome de arquivo de destino segundo regras do S3
                                  + Self.ValidateFileName(AFileName);
+    PartsList                   := TList<TAmazonMultipartPart>.Create;
+
+    if APackageSize < FIVE_MEGABYTES then
+      APackageSize := FIVE_MEGABYTES;
+
+    iTotalParts := (Lib.Files.GetFileSizeB(ASourcePath + AFileName)
+                    div APackageSize) + 1;
+
+    while (iTotalParts >= 10000) do
+    begin
+      APackageSize := APackageSize + FIVE_MEGABYTES;
+      iTotalParts := (Lib.Files.GetFileSizeB(ASourcePath + AFileName)
+                      div APackageSize) + 1;
+    end;
+
+    sUploadID := Self.StorageService.InitiateMultipartUpload(Self.FBucketName,
+                                                             sTargetFile,
+                                                             slMetadata,
+                                                             slHeaders,
+                                                             amzbaPublicRead,
+                                                             CloudResponse);
 
     try                                                                         //Tento
-      Self.StorageService.UploadObject(Self.FBucketName,                        //Enviar o arquivo para a Bucket configurada na instância
-                                       sTargetFile,                             //no destino validado
-                                       FileContent,                             //a partir do Stream que montei em memória
-                                       False,
-                                       slMetadata,
-                                       nil,
-                                       amzbaPublicRead,
-                                       CloudResponse);                          //e fornecendo um objeto para ser alimentado com a situação da transferência
+      Self.OnMultipartWorkBegin(iTotalParts);
+
+      for iPartNo := 1 to iTotalParts do
+      begin
+        if LoadFilePart(Buffer, ASourcePath + AFileName, ((iPartNo - 1) * APackageSize), APackageSize) then
+        begin
+          if Length(Buffer) > 0 then
+          begin
+            while not Self.StorageService.UploadPart(Self.FBucketName,
+                                                     sTargetFile,
+                                                     sUploadID,
+                                                     iPartNo,
+                                                     Buffer,
+                                                     UploadedPart,
+                                                     EmptyStr,
+                                                     CloudResponse) do
+              Sleep(100);
+
+            Buffer := nil;
+            PartsList.Add(UploadedPart);
+            Self.OnMultipartWork(iPartNo, APackageSize);
+          end;
+        end;
+      end;
+
+      Self.StorageService.CompleteMultipartUpload(Self.FBucketName,
+                                                  sTargetFile,
+                                                  sUploadID,
+                                                  PartsList,
+                                                  CloudResponse);
 
       case CloudResponse.StatusCode of                                          //Se o código de situação
         200, 201: begin                                                         //for 200 ou 201
@@ -339,9 +409,11 @@ begin
                             [AFileName, Self.FBucketName, e.Message]));
     end;
   finally                                                                       //Ao final sempre
-    FileContent := nil;                                                         //Limpo a referência para o arquivo em Stream, permitindo que a memória seja liberada
-    FreeAndNil(CloudResponse);                                                  //Destruo o objeto com o retorno da Cloud
-    FreeAndNil(slMetadata);                                                     //e também a List com os metadados
+    Self.OnMultipartWorkEnd;
+    Buffer := nil;                                                              //Limpo a referência para o arquivo em Stream, permitindo que a memória seja liberada
+    FreeAndNil(CloudResponse);                                                  //Destruo o objeto com o retorno da Cloud,
+    FreeAndNil(slMetadata);                                                     //a List com os metadados
+    FreeAndNil(slHeaders);                                                      //e também a List com os cabeçalhos
   end;
 end;
 
@@ -377,7 +449,7 @@ begin
           Result := True;
         else
           Lib.Files.Log(Format(ERROR_DOWNLOADING_FILE,
-                              [AFileName, Self.FBucketName, CloudResponse.StatusMessage]));
+                               [AFileName, Self.FBucketName, CloudResponse.StatusMessage]));
       end;
     except
       on e: Exception do

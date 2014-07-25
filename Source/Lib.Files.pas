@@ -12,6 +12,11 @@ interface
 uses
   Classes, SysUtils, Forms;
 
+{ Constantes }
+const
+  BYTES_TO_MEGA  = 1048576; {1024²}
+  FIVE_MEGABYTES = 5242880;
+
 {$IFDEF VER150}
 { Classes }
 type
@@ -47,6 +52,9 @@ type
   function  CreatePublicFile(const AFileName: string; var AStream: TFileStream): Boolean; overload;
   function  ForceDelete(const AFileName: string): Boolean;
   function  LoadFile(const AFileName: String; ARequiredSizeMod: Integer = 1): TBytes;
+  function  LoadFilePart(out ABuffer: TBytes; const AFileName: string;
+    const AInitialByte: integer; AByteCount: integer): Boolean;
+  function  SaveBytesToFile(const ABuffer: TBytes; const AFileName: string): Boolean;
   function  ExtractLastFolderName(AFileName: string): string;
 
 implementation
@@ -64,7 +72,7 @@ uses
 ============================================| Leandro Medeiros (20/10/2011) |==}
 function BytesToMB(iBytes: integer): Real;
 begin
-  Result := iBytes / 1048576;
+  Result := iBytes / BYTES_TO_MEGA;
 end;
 
 {==| Procedimento - Pasta Anterior |============================================
@@ -562,6 +570,64 @@ begin
     fsResult.ReadBuffer(Result[0], fsResult.Size);
   finally
     fsResult.Free;
+  end;
+end;
+
+//==| Carregar Pedaço de Arquivo |==============================================
+function LoadFilePart(out ABuffer: TBytes; const AFileName: string;
+  const AInitialByte: integer; AByteCount: integer): Boolean;
+var
+  fsFile : TFileStream;
+begin
+  Result := False;
+
+  if AFileName = EmptyStr then
+  begin
+    SetLength(ABuffer, 0);
+    Exit;
+  end;
+
+
+  try
+    fsFile := TFileStream.Create(AFileName, fmOpenRead);
+    if AInitialByte > fsFile.Size then
+    begin
+      SetLength(ABuffer, 0);
+      Exit;
+    end;
+
+    fsFile.Position := AInitialByte;
+
+    if AByteCount > (fsFile.Size - AInitialByte) then
+      AByteCount := (fsFile.Size - AInitialByte);
+
+    SetLength(ABuffer, AByteCount);
+
+    fsFile.ReadBuffer(ABuffer, AByteCount);
+
+    Result := SizeOf(ABuffer) > 0;
+  finally
+    fsFile.Free;
+  end;
+end;
+
+//==| Savar TBytes em disco |===================================================
+function SaveBytesToFile(const ABuffer: TBytes; const AFileName: string): Boolean;
+var
+  vStream: TMemoryStream;
+begin
+  Result  := False;
+
+  try
+    vStream := TMemoryStream.Create;
+
+    if Length(ABuffer) > 0 then vStream.WriteBuffer(ABuffer[0], Length(ABuffer));
+
+    vStream.SaveToFile(AFileName);
+
+    Result := True;
+  finally
+    vStream.Free;
   end;
 end;
 

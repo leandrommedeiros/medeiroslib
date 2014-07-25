@@ -8,9 +8,9 @@ unit Lib.StrUtils;
 
 interface
 
+{ Bibliotecas para Interface }
 uses
-  IdHash, IdHashMessageDigest, // Para função GenRandomStr [2]
-  Math, SysUtils, Classes, StrUtils, Controls;
+  Classes;
 
 const
 { Declarações de Constantes - Agrupamento de tipos de caracteres }
@@ -42,8 +42,15 @@ const
   function  StrToStream(const AText: string): TStringStream;
   function  StrToHex(const ABuffer: Ansistring): string;
   function  HexToStr(const ABuffer: string): Ansistring;
+  function  MD5(const AContent: string): string; overload;
+  function  MD5(const AContent: TStream): string; overload;
 
 implementation
+
+{ Bibliotecas para Implementação }
+uses
+  IdHash, IdHashMessageDigest, // Para função GenRandomStr [2]
+  Math, StrUtils, SysUtils;
 
 {==| Função - Extrair Letras Maiusculas |=======================================
     Varre a string de entrada e retorna uma segunda string com todas as letras
@@ -325,18 +332,7 @@ begin
   Randomize;
   S := S + IntToStr(RandomRange(1000, 9999));
 
-  with TIdHashMessageDigest5.Create do
-    try
-      {$IFDEF VER150}
-      S := AnsiLowerCase(AsHex(HashValue(S)));
-      {$ELSE}
-      S := AnsiLowerCase(HashStringAsHex(S));
-      {$ENDIF}
-    finally
-      Free;
-    end;
-
-  Result := S;
+  Result := Lib.StrUtils.MD5(S);
 end;
 
 {==| Função - Para Data Americana (String) |====================================
@@ -390,6 +386,40 @@ begin
 
   for idx := 1 to Length(ABuffer) div 2 do
     Result:= Result + Char(StrToInt('$' + Copy(ABuffer,(idx - 1) * 2 + 1, 2)));
+end;
+
+//==| Função - Hash MD5 (String) |==============================================
+function MD5(const AContent: string): string;
+begin
+  Result := EmptyStr;
+
+  with TIdHashMessageDigest5.Create do
+    try
+      {$IFDEF VER150}
+      Result := AnsiLowerCase(AsHex(HashValue(AContent)));
+      {$ELSE}
+      Result := AnsiLowerCase(HashStringAsHex(AContent));
+      {$ENDIF}
+    finally
+      Free;
+    end;
+end;
+
+//==| Função - Hash MD5 (Stream) |==============================================
+function MD5(const AContent: TStream): string;
+begin
+  Result := EmptyStr;
+
+  with TIdHashMessageDigest5.Create do
+    try
+      {$IFDEF VER150}
+      Result := AnsiLowerCase(AsHex(HashValue(AContent)));
+      {$ELSE}
+      Result := AnsiLowerCase(HashStreamAsHex(AContent));
+      {$ENDIF}
+    finally
+      Free;
+    end;
 end;
 //==============================================================================
 
