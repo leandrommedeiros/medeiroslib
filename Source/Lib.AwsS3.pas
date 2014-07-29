@@ -10,7 +10,8 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  Lib.Files, System.SysUtils, Data.Cloud.AmazonAPI, Data.Cloud.CloudAPI, System.Classes;
+  Lib.Files, System.SysUtils, Data.Cloud.AmazonAPI, Data.Cloud.CloudAPI,
+  System.Classes;
 
 { Constantes }
 const
@@ -57,6 +58,7 @@ type
     function MultipartUpload(ASourcePath: string; const ATargetDir, AFileName: String;
       APackageSize: integer = FIVE_MEGABYTES; const ADelAfterTransfer: Boolean = False): Boolean;
     function Download(ASourcePath, ATargetPath, AFileName: String): Boolean;
+    function ListBuckets: TStrings;
 
     constructor Create(const AccountName, AccountKey, ABucketName: string); overload;
     destructor  Destroy; override;
@@ -77,7 +79,7 @@ implementation
 { Bibliotecas para Implementação }
 uses
   Lib.StrUtils, Lib.Win, Lib.Utils, Vcl.Dialogs, IPPeerClient,
-  Datasnap.DBClient, System.Generics.Collections;
+  Datasnap.DBClient, System.Generics.Collections, Xml.XMLIntf, Xml.XMLDoc;
 
 
 {*******************************************************************************
@@ -208,6 +210,53 @@ begin
   end;
 end;
 
+//==| Listar Buckets |==========================================================
+function TS3Connection.ListBuckets: TStrings;
+var
+  XML    : string;
+  XMLDoc : IXMLDocument;
+  ResultNode,
+  BucketNode,
+  Aux    : IXMLNode;
+begin
+  Result := nil;
+  XML    := Self.StorageService.ListBucketsXML(nil);
+
+  if XML <> EmptyStr then
+  begin
+    XMLDoc := TXMLDocument.Create(nil);
+
+    try
+      XMLDoc.LoadFromXML(XML);
+    except
+      Exit(Result);
+    end;
+
+    ResultNode := XMLDoc.DocumentElement.ChildNodes.FindNode('Buckets');
+
+    if ResultNode <> nil then
+    begin
+      Result := TStringList.Create;
+
+      if not ResultNode.HasChildNodes then
+        Exit(Result);
+
+      BucketNode := ResultNode.ChildNodes.First;
+
+      while BucketNode <> nil do
+      begin
+        if AnsiSameText(BucketNode.NodeName, 'Bucket') and BucketNode.HasChildNodes then
+        begin
+          Aux := BucketNode.ChildNodes.FindNode('Name');
+
+          if (Aux <> nil) and Aux.IsTextElement then Result.Add(Aux.Text);
+        end;
+
+        BucketNode := BucketNode.NextSibling;
+      end;
+    end;
+  end;end;
+
 //==| Função - Upload |=========================================================
 function TS3Connection.Upload(ASourcePath: string; const ATargetDir,
   AFileName: String; const ADelAfterTransfer: Boolean = False;
@@ -314,6 +363,7 @@ var
   iPartNo,
   iTotalParts   : integer;
   sUploadID,
+  sBufferMD5,
   sTargetFile   : string;
   Buffer        : TBytes;
   CloudResponse : TCloudResponseInfo;
@@ -348,8 +398,8 @@ begin
     while (iTotalParts >= 10000) do
     begin
       APackageSize := APackageSize + FIVE_MEGABYTES;
-      iTotalParts := (Lib.Files.GetFileSizeB(ASourcePath + AFileName)
-                      div APackageSize) + 1;
+      iTotalParts  := (Lib.Files.GetFileSizeB(ASourcePath + AFileName)
+                       div APackageSize) + 1;
     end;
 
     sUploadID := Self.StorageService.InitiateMultipartUpload(Self.FBucketName,
@@ -368,14 +418,15 @@ begin
         begin
           if Length(Buffer) > 0 then
           begin
+            sBufferMD5 := Lib.StrUtils.MD5(Buffer);
+
             while not Self.StorageService.UploadPart(Self.FBucketName,
                                                      sTargetFile,
                                                      sUploadID,
                                                      iPartNo,
                                                      Buffer,
                                                      UploadedPart,
-                                                     EmptyStr,
-                                                     CloudResponse) do
+                                                     sBufferMD5) do
               Sleep(100);
 
             Buffer := nil;
@@ -385,28 +436,24 @@ begin
         end;
       end;
 
-      Self.StorageService.CompleteMultipartUpload(Self.FBucketName,
-                                                  sTargetFile,
-                                                  sUploadID,
-                                                  PartsList,
-                                                  CloudResponse);
+      if Self.StorageService.CompleteMultipartUpload(Self.FBucketName,
+                                                     sTargetFile,
+                                                     sUploadID,
+                                                     PartsList,
+                                                     CloudResponse) then
+      begin
+        Result := True;                                                         //Se a transferência foi bem sucedida, Retorno Verdadeiro
 
-      case CloudResponse.StatusCode of                                          //Se o código de situação
-        200, 201: begin                                                         //for 200 ou 201
-          Result := True;                                                       //é porque a transferência foi bem sucedida
-
-          if ADelAfterTransfer then                                             //então, se foi solicitado na chamada do método,
-            Lib.Files.ForceDelete(ASourcePath + AFileName);                     //apago o arquivo do disco de origem
-        end
-
-        else                                                                    //Senão
-          Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                            //gravo um log em disco com a mensagem retornada pela Amazon
-                               [AFileName, Self.FBucketName, CloudResponse.StatusMessage]));
+        if ADelAfterTransfer then                                               //então, se foi solicitado na chamada do método,
+          Lib.Files.ForceDelete(ASourcePath + AFileName);                       //apago o arquivo do disco de origem
       end;
     except                                                                      //Se ocorrer um erro inesperado no processo
       on e: Exception do
+      begin
         Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                              //gravo um log tentando obter a mensagem do erro
                             [AFileName, Self.FBucketName, e.Message]));
+        Self.StorageService.AbortMultipartUpload(Self.FBucketName, sTargetFile, sUploadID);
+      end;
     end;
   finally                                                                       //Ao final sempre
     Self.OnMultipartWorkEnd;

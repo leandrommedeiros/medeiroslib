@@ -1,6 +1,6 @@
 {===============================================================================
 
-                   BIBLIOTECA - ARQUIVOS E DIRETÓRIOS (Para XE3)
+                   BIBLIOTECA - ARQUIVOS E DIRETÓRIOS
 
 ==========================================================| Versão 12.11.00 |==}
 
@@ -614,7 +614,7 @@ end;
 //==| Savar TBytes em disco |===================================================
 function SaveBytesToFile(const ABuffer: TBytes; const AFileName: string): Boolean;
 var
-  vStream: TMemoryStream;
+  vStream : TMemoryStream;
 begin
   Result  := False;
 

@@ -10,7 +10,7 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  Classes;
+  Classes, SysUtils, Controls, Lib.Files;
 
 const
 { Declarações de Constantes - Agrupamento de tipos de caracteres }
@@ -43,14 +43,15 @@ const
   function  StrToHex(const ABuffer: Ansistring): string;
   function  HexToStr(const ABuffer: string): Ansistring;
   function  MD5(const AContent: string): string; overload;
+  function  MD5(const AContent: TBytes): string; overload;
   function  MD5(const AContent: TStream): string; overload;
 
 implementation
 
 { Bibliotecas para Implementação }
 uses
-  IdHash, IdHashMessageDigest, // Para função GenRandomStr [2]
-  Math, StrUtils, SysUtils;
+  IdHash, IdHashMessageDigest, // Para função MD5 [2]
+  Math, StrUtils;
 
 {==| Função - Extrair Letras Maiusculas |=======================================
     Varre a string de entrada e retorna uma segunda string com todas as letras
@@ -396,12 +397,32 @@ begin
   with TIdHashMessageDigest5.Create do
     try
       {$IFDEF VER150}
-      Result := AnsiLowerCase(AsHex(HashValue(AContent)));
+      Result := AnsiUpperCase(AsHex(HashValue(AContent)));
       {$ELSE}
-      Result := AnsiLowerCase(HashStringAsHex(AContent));
+      Result := AnsiUpperCase(HashStringAsHex(AContent));
       {$ENDIF}
     finally
       Free;
+    end;
+end;
+
+//==| Função - Hash MD5 (TBytes) |==============================================
+function MD5(const AContent: TBytes): string;
+var
+  vStream : TMemoryStream;
+begin
+  Result := EmptyStr;
+
+  if Length(AContent) > 0 then
+    try
+      vStream := TMemoryStream.Create;
+      vStream.WriteBuffer(AContent[0], Length(AContent));
+      vStream.Position := 0;
+
+      Result := MD5(vStream);
+    finally
+      vStream.SaveToFile('D:\Test.part');
+      vStream.Free;
     end;
 end;
 
@@ -413,9 +434,9 @@ begin
   with TIdHashMessageDigest5.Create do
     try
       {$IFDEF VER150}
-      Result := AnsiLowerCase(AsHex(HashValue(AContent)));
+      Result := AnsiUpperCase(AsHex(HashValue(AContent)));
       {$ELSE}
-      Result := AnsiLowerCase(HashStreamAsHex(AContent));
+      Result := AnsiUpperCase(HashStreamAsHex(AContent));
       {$ENDIF}
     finally
       Free;

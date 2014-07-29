@@ -29,21 +29,25 @@ package MedeirosLib;
 {$IMPLICITBUILD ON}
 
 requires
-  xmlrtl,
-  rtl,
-  vcl,
+  {$IFDEF VER150}
+  indy,
+  {$ELSE}
   DbxCommonDriver,
-  dbrtl,
   DbxClientDriver,
   CustomIPTransport,
-  dbexpress,
-  dsnap,
   IndySystem,
   IndyProtocols,
   IndyCore,
   IndyIPClient,
   IndyIPCommon,
-  CloudService;
+  CloudService,
+  {$ENDIF}
+  xmlrtl,
+  rtl,
+  vcl,
+  dbrtl,
+  dbexpress,
+  dsnap;
 
 contains
   ComponentsRegister in '..\Source\ComponentsRegister.pas',
