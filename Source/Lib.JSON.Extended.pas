@@ -1,297 +1,79 @@
-{===============================================================================
+ï»¿{===============================================================================
 
                          BIBLIOTECA - CLASSES JSON
 
-===============================================================| 10/04/2013 |==}
+===============================================================| 16/07/2014 |==}
 
 unit Lib.JSON.Extended;
 
-{$WARN SYMBOL_DEPRECATED OFF}
+/// <summary>
+/// System.JSON implements a TJson class that offers several convenience methods:
+/// - converting Objects to Json and vice versa
+/// - formating Json  </summary>
 
 interface
 
 uses
-  Data.DBXPlatform,
-  System.SysUtils
-;
+  System.Rtti, System.TypInfo, System.Generics.Collections, System.SysUtils;
+
 
 type
-
   TInt15 = 0..15;
-
   TJSONValueM = class;
   TJSONString = class;
 
-  /// <summary> Parent class for callback methods.
-  /// </summary>
-  /// <remarks> A client callback needs to override the
-  ///  execute method. The instance is passed as input parameter to the proxy method.
-  ///
-  /// </remarks>
-  TDBXCallback = class abstract
-  public
-
-    /// <summary> Holds the client side callback logic.
-    /// </summary>
-    /// <remarks>
-    ///  Function doesn't have argument ownership
-    ///
-    /// </remarks>
-    /// <param name="Arg">- JSON value</param>
-    /// <returns>JSON value</returns>
-    function Execute(const Arg: TJSONValueM): TJSONValueM; overload; virtual; abstract;
-
-    /// <summary> Holds the client side callback logic.
-    /// </summary>
-    /// <remarks>
-    ///  Function doesn't have argument ownership
-    ///
-    /// </remarks>
-    /// <param name="Arg">- Object value</param>
-    /// <returns>an object instance</returns>
-    function Execute(Arg: TObject): TObject; overload; virtual; abstract;
-
-{$IFNDEF AUTOREFCOUNT}
-    /// <summary> Manage reference count by increasing with one unit
-    ///
-    /// </summary>
-    /// <returns>new count</returns>
-    function AddRef: Integer; virtual;
-
-    /// <summary> Decreases the reference count. If the count is zero (or less)
-    /// </summary>
-    /// <remarks> If the count is zero (or less)
-    ///  the instance self-destructs.
-    ///
-    /// </remarks>
-    /// <returns>current count</returns>
-    function Release: Integer; virtual;
-{$ENDIF !AUTOREFCOUNT}
-  protected
-
-    /// <summary> Override the method if you are using the connection handler.
-    /// </summary>
-    /// <remarks>
-    ///
-    ///  The information when is provided when known.
-    ///
-    /// </remarks>
-    /// <param name="ConnectionHandler">- connection handler as an Object</param>
-    procedure SetConnectionHandler(const ConnectionHandler: TObject); virtual;
-    procedure SetDsServer(const DsServer: TObject); virtual;
-
-    /// <summary> Override this method if you are using the parameter ordinal (index in the
-    ///  parameter list, starting with zero).
-    /// </summary>
-    /// <remarks>
-    ///
-    ///  The information when is provided when known.
-    ///
-    /// </remarks>
-    /// <param name="Ordinal">- callback parameter index </param>
-    procedure SetOrdinal(const Ordinal: Integer); virtual;
-
-    function IsConnectionLost: Boolean; virtual;
-  private
-{$IFNDEF AUTOREFCOUNT}
-    FFRefCount: Integer;
-{$ENDIF !AUTOREFCOUNT}
-  public
-
-    /// <summary> Override the method if you are using the connection handler.
-    /// </summary>
-    /// <remarks>
-    ///
-    ///  The information when is provided when known.
-    ///
-    /// </remarks>
-    property ConnectionHandler: TObject write SetConnectionHandler;
-    property DsServer: TObject write SetDsServer;
-
-    /// <summary> Override this method if you are using the parameter ordinal (index in the
-    ///  parameter list, starting with zero).
-    /// </summary>
-    /// <remarks>
-    ///
-    ///  The information when is provided when known.
-    ///
-    /// </remarks>
-    property Ordinal: Integer write SetOrdinal;
-
-    property ConnectionLost: Boolean read IsConnectionLost;
-  public
-
-    /// <summary> Constant for JSON based argument remote invocation
-    /// </summary>
-    const ArgJson = 1;
-
-    /// <summary> Constant for object based argument remote invocation
-    /// </summary>
-    const ArgObject = 2;
-  end;
-
-
-  /// <summary> Callback delegate class is used as an intermediate place holder for an
-  ///  actual instance when that is possible to be created.
-  /// </summary>
-  /// <remarks>
-  ///  Assumes ownership of the actual delegate.
-  /// </remarks>
-  TDBXCallbackDelegate = class(TDBXCallback)
-  public
-
-    /// <summary> Frees the delegate, if any
-    /// </summary>
-    destructor Destroy; override;
-
-    /// <summary> see com.borland.dbx.json.DBXCallback#execute(com.borland.dbx.json.JSONValue)
-    /// </summary>
-    function Execute(const Arg: TJSONValueM): TJSONValueM; overload; override;
-
-    /// <summary> see <see cref="TDBXCallback.execute(TObject)"/>
-    /// </summary>
-    function Execute(Arg: TObject): TObject; overload; override;
-  protected
-    procedure SetDelegate(const Callback: TDBXCallback); virtual;
-    function GetDelegate: TDBXCallback; virtual;
-    procedure SetConnectionHandler(const ConnectionHandler: TObject); override;
-    procedure SetOrdinal(const Ordinal: Integer); override;
-    procedure SetDsServer(const DsServer: TObject); override;
-    function IsConnectionLost: Boolean; override;
-  private
-    FDelegate: TDBXCallback;
-    [Weak]FConnectionHandler: TObject;
-    [Weak]FDsServer: TObject;
-    FOrdinal: Integer;
-  public
-    property Delegate: TDBXCallback read GetDelegate write SetDelegate;
-  end;
-
-
-  /// <summary> Extension of DBXCallback which exposes a name property, which can be used to identify the callback.
-  /// </summary>
-  TDBXNamedCallback = class abstract(TDBXCallback)
-  public
-
-    /// <summary> constructor for a named callback, which takes in the callback's name
-    /// </summary>
-    /// <param name="name">the name of the callback</param>
-    constructor Create(const Name: string);
-  protected
-
-    /// <summary> Returns the name of this callback
-    /// </summary>
-    /// <returns>the callback's name</returns>
-    function GetName: string; virtual;
-  protected
-    FName: string;
-  public
-
-    /// <summary> Returns the name of this callback
-    /// </summary>
-    /// <returns>the callback's name</returns>
-    property Name: string read GetName;
-  end;
-
-
-  /// <summary> JSON top level class. All specific classes are descendant of it.
-  /// </summary>
-  /// <remarks> All specific classes are descendant of it.
-  ///
-  ///  More on JSON can be found on www.json.org
-  ///
-  /// </remarks>
+  /// <summary> JSON top level class. All specific classes are descendant of it.</summary>
+  /// <remarks> All specific classes are descendant of it. More on JSON can be found on www.json.org </remarks>
   TJSONAncestor = class abstract
-  public
+  private
+    /// <summary> True if the instance is own by the container</summary>
+    FOwned: Boolean;
+  protected
+    /// <summary> Returns true if the instance represent JSON null value </summary>
+    /// <returns>true if the instance represents JSON null value</returns>
+    function IsNull: Boolean; virtual;
 
-    /// <summary> Default constructor, sets owned flag to true
-    /// </summary>
+    /// <summary> Method used by parser to re-constitute the JSON object structure </summary>
+    /// <param name="descendent">descendant to be added</param>
+    procedure AddDescendant(const Descendent: TJSONAncestor); virtual; abstract;
+    procedure SetOwned(const Own: Boolean); virtual;
+  public
+    /// <summary> Default constructor, sets owned flag to true </summary>
     constructor Create;
 
-    /// <summary> Where appropriate, returns the instance representation as String
-    ///
-    /// </summary>
+    /// <summary> Where appropriate, returns the instance representation as String </summary>
     /// <returns>string representation, can be null</returns>
     function Value: string; virtual;
 
-    /// <summary> Returns estimated byte size of current JSON object. The actual size is smaller
-    /// </summary>
-    /// <remarks> The actual size is smaller
-    ///
-    /// </remarks>
+    /// <summary> Returns estimated byte size of current JSON object. The actual size is smaller</summary>
+    /// <remarks> The actual size is smaller</remarks>
     /// <returns>integer - the byte size</returns>
     function EstimatedByteSize: Integer; virtual; abstract;
 
-    /// <summary> Serializes the JSON object content into bytes. Returns the actual used size. It assumes the byte container has sufficient capacity to store it.
-    /// </summary>
+    /// <summary> Serializes the JSON object content into bytes. Returns the actual used size.
+    /// It assumes the byte container has sufficient capacity to store it. </summary>
     /// <remarks> Returns the actual used size. It assumes the byte container has sufficient capacity to store it.
-    ///
-    ///  It is recommended that the container capacity is given by estimatedByteSize
-    ///
-    /// </remarks>
+    /// It is recommended that the container capacity is given by estimatedByteSize </remarks>
     /// <param name="data">- byte container</param>
     /// <param name="offset">- offset from which the object is serialized</param>
     /// <returns>integer - the actual size used</returns>
     function ToBytes(const Data: TArray<Byte>; const Offset: Integer): Integer; virtual; abstract;
 
-    /// <summary> Perform deep clone on current value
-    ///
-    /// </summary>
+    /// <summary> Perform deep clone on current value</summary>
     /// <returns>an exact copy of current instance</returns>
     function Clone: TJSONAncestor; virtual; abstract;
     function GetOwned: Boolean; virtual;
-  protected
 
-    /// <summary> Returns true if the instance represent JSON null value
-    ///
-    /// </summary>
-    /// <returns>true if the instance represents JSON null value</returns>
-    function IsNull: Boolean; virtual;
-
-    /// <summary> Method used by parser to re-constitute the JSON object structure
-    ///
-    /// </summary>
-    /// <param name="descendent">descendant to be added</param>
-    procedure AddDescendant(const Descendent: TJSONAncestor); virtual; abstract;
-    procedure SetOwned(const Own: Boolean); virtual;
-  private
-
-    /// <summary> True if the instance is own by the container
-    /// </summary>
-    FOwned: Boolean;
-  public
-
-    /// <summary> Returns true if the instance represent JSON null value
-    ///
-    /// </summary>
+    /// <summary> Returns true if the instance represent JSON null value </summary>
     /// <returns>true if the instance represents JSON null value</returns>
     property Null: Boolean read IsNull;
     property Owned: Boolean write SetOwned;
   end;
 
 
-  /// <summary> Generalizes byte consumption of JSON parser. It accommodates UTF8, default it
-  /// </summary>
-  /// <remarks> It accommodates UTF8, default it
-  ///  assumes the content is generated by JSON toBytes method.
-  ///
-  /// </remarks>
+  /// <summary> Generalizes byte consumption of JSON parser. It accommodates UTF8, default it</summary>
+  /// <remarks> It accommodates UTF8, default it assumes the content is generated by JSON toBytes method. </remarks>
   TJSONByteReader = class
-  public
-    constructor Create(const Data: TArray<Byte>; const Offset: Integer; const Range: Integer); overload;
-    constructor Create(const Data: TArray<Byte>; const Offset: Integer; const Range: Integer; const IsUTF8: Boolean); overload;
-    function ConsumeByte: Byte; virtual;
-    function PeekByte: Byte; virtual;
-    function Empty: Boolean; virtual;
-    function HasMore(const Size: Integer): Boolean; virtual;
-  protected
-    function GetOffset: Integer; virtual;
-  private
-
-    /// <summary> Consumes byte-order mark if any is present in the byte data
-    /// </summary>
-    procedure ConsumeBOM;
-    procedure MoveOffset;
   private
     FData: TArray<Byte>;
     FOffset: Integer;
@@ -300,414 +82,388 @@ type
     FUtf8data: TArray<Byte>;
     FUtf8offset: Integer;
     FUtf8length: Integer;
+
+    /// <summary> Consumes byte-order mark if any is present in the byte data </summary>
+    procedure ConsumeBOM;
+    procedure MoveOffset;
+  protected
+    function GetOffset: Integer; virtual;
   public
+    constructor Create(const Data: TArray<Byte>; const Offset: Integer; const Range: Integer); overload;
+    constructor Create(const Data: TArray<Byte>; const Offset: Integer; const Range: Integer; const IsUTF8: Boolean); overload;
+    function ConsumeByte: Byte; virtual;
+    function PeekByte: Byte; virtual;
+    function Empty: Boolean; virtual;
+    function HasMore(const Size: Integer): Boolean; virtual;
     property Offset: Integer read GetOffset;
   end;
 
 
-  /// <summary> Signals a JSON exception, usually generated by parser code
-  ///
-  /// </summary>
-  TJSONException = class(Exception)
+  /// <summary> Signals a JSON exception, usually generated by parser code </summary>
+  EJSONException = class(Exception)
+  private
+    const FSerialVersionUID = 1964987864664789863;
   public
     constructor Create(const ErrorMessage: string);
-  private
-
-    /// <summary>
-    /// </summary>
-    const FSerialVersionUID = 1964987864664789863;
   end;
 
 
-  /// <summary> Implements JSON string : value
-  ///
-  /// </summary>
+  /// <summary> Implements JSON string : value </summary>
   TJSONPair = class sealed(TJSONAncestor)
+  private
+    FJsonString: TJSONString;
+    FJsonValue: TJSONValueM;
+  protected
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#addDescendent(com.borland.dbx.transport.JSONAncestor) </summary>
+    procedure AddDescendant(const Descendant: TJSONAncestor); override;
+
+    /// <summary> Sets the pair's string value </summary>
+    /// <param name="descendant">string object cannot be null</param>
+    procedure SetJsonString(const Descendant: TJSONString);
+
+    /// <summary> Sets the pair's value member </summary>
+    /// <param name="val">string object cannot be null</param>
+    procedure SetJsonValue(const Val: TJSONValueM);
+
+    /// <summary> Returns the pair's string. </summary>
+    /// <returns>JSONString - pair's string</returns>
+    function GetJsonString: TJSONString;
+
+    /// <summary> Returns the pair value. </summary>
+    /// <returns>JSONAncestor - pair's value</returns>
+    function GetJsonValue: TJSONValueM;
   public
     constructor Create; overload;
 
-    /// <summary> Utility constructor providing pair members
-    ///
-    /// </summary>
+    /// <summary> Utility constructor providing pair members </summary>
     /// <param name="str">- JSONString member, not null</param>
     /// <param name="value">- JSONValue member, never null</param>
     constructor Create(const Str: TJSONString; const Value: TJSONValueM); overload;
 
-    /// <summary> Convenience constructor. Parameters will be converted into JSON equivalents
-    /// </summary>
-    /// <remarks> Parameters will be converted into JSON equivalents
-    ///
-    /// </remarks>
+    /// <summary> Convenience constructor. Parameters will be converted into JSON equivalents</summary>
+    /// <remarks> Parameters will be converted into JSON equivalents </remarks>
     /// <param name="str">- string member</param>
     /// <param name="value">- JSON value</param>
     constructor Create(const Str: string; const Value: TJSONValueM); overload;
 
-    /// <summary> Convenience constructor. Parameters are converted into JSON strings pair
-    /// </summary>
-    /// <remarks> Parameters are converted into JSON strings pair
-    ///
-    /// </remarks>
+    /// <summary> Convenience constructor. Parameters are converted into JSON strings pair </summary>
+    /// <remarks> Parameters are converted into JSON strings pair </remarks>
     /// <param name="str">- string member</param>
     /// <param name="value">- converted into a JSON string value</param>
     constructor Create(const Str: string; const Value: string); overload;
 
-    /// <summary> Frees string and value
-    /// </summary>
+    /// <summary> Frees string and value</summary>
     destructor Destroy; override;
 
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize()
-    /// </summary>
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize() </summary>
     function EstimatedByteSize: Integer; override;
 
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#toBytes(byte[], int)
-    /// </summary>
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#toBytes(byte[], int) </summary>
     function ToBytes(const Data: TArray<Byte>; const Offset: Integer): Integer; override;
     function ToString: string; override;
     function Clone: TJSONAncestor; override;
-  protected
 
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#addDescendent(com.borland.dbx.transport.JSONAncestor)
-    /// </summary>
-    procedure AddDescendant(const Descendant: TJSONAncestor); override;
-
-    /// <summary> Sets the pair's string value
-    ///
-    /// </summary>
-    /// <param name="descendant">string object cannot be null</param>
-    procedure SetJsonString(const Descendant: TJSONString);
-
-    /// <summary> Sets the pair's value member
-    ///
-    /// </summary>
-    /// <param name="val">string object cannot be null</param>
-    procedure SeTJSONValueM(const Val: TJSONValueM);
-
-    /// <summary> Returns the pair's string.
-    /// </summary>
-    /// <remarks>
-    /// </remarks>
-    /// <returns>JSONString - pair's string</returns>
-    function GetJsonString: TJSONString;
-
-    /// <summary> Returns the pair value.
-    /// </summary>
-    /// <remarks>
-    /// </remarks>
-    /// <returns>JSONAncestor - pair's value</returns>
-    function GeTJSONValueM: TJSONValueM;
-  private
-    FJsonString: TJSONString;
-    FJsonValue: TJSONValueM;
-  public
-
-    /// <summary> Returns the pair's string.
-    /// </summary>
-    /// <remarks>
-    /// </remarks>
+    /// <summary> Returns the pair's string. </summary>
     /// <returns>JSONString - pair's string</returns>
     property JsonString: TJSONString read GetJsonString write SetJsonString;
 
-    /// <summary> Returns the pair value.
-    /// </summary>
-    /// <remarks>
-    /// </remarks>
+    /// <summary> Returns the pair value. </summary>
     /// <returns>JSONAncestor - pair's value</returns>
-    property JsonValue: TJSONValueM read GeTJSONValueM write SeTJSONValueM;
+    property JsonValue: TJSONValueM read GetJsonValue write SetJsonValue;
   end;
 
 
-  /// <summary> Groups string, number, object, array, true, false, null
-  ///
-  /// </summary>
+  /// <summary> Groups string, number, object, array, true, false, null </summary>
   TJSONValueM = class abstract(TJSONAncestor)
+    private
+    function Cast<T>: T;
+    function AsTValue(ATypeInfo: PTypeInfo; out AValue: TValue): Boolean; virtual;
+  protected
+    function FindValue(const APath: string): TJSONValueM; virtual;
+  public
+    /// <summary>Converts a JSON value to a specified type </summary>
+    /// <remarks> Returns False when the JSON object could not be converted </remarks>
+    function TryGetValue<T>(out AValue: T): Boolean; overload;
+
+    /// <summary>Finds a JSON value and converts to a specified type </summary>
+    /// <remarks> Returns False when a JSON object could not be found or could not be converted </remarks>
+    function TryGetValue<T>(const APath: string; out AValue: T): Boolean; overload;
+
+    /// <summary>Finds a JSON value and converts to a specified type </summary>
+    /// <remarks> Raises an exception when a JSON object could not be found or the JSON object could not be converted </remarks>
+    function GetValue<T>(const APath: string = ''): T; overload;
+
+    /// <summary>Finds a JSON value if possible.  If found, the JSON value is converted to a specified type.
+    /// If not found or if the JSON value is null, then returns a default value. </summary>
+    /// <remarks>Raises an exception when a JSON value is found but can't be converted. </remarks>
+    function GetValue<T>(const APath: string; ADefaultValue: T): T; overload;
   end;
 
-
-  /// <summary> Implements JSON true value
-  ///
-  /// </summary>
+  /// <summary> Implements JSON true value </summary>
   TJSONTrue = class sealed(TJSONValueM)
-  public
+  private
+    const  TrueString: string = 'true';
+  protected
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#addDescendent(com.borland.dbx.transport.JSONAncestor) </summary>
+    procedure AddDescendant(const Descendant: TJSONAncestor); override;
+    function AsTValue(ATypeInfo: PTypeInfo; out AValue: TValue): Boolean; override;
 
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize()
-    /// </summary>
+  public
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize() </summary>
     function EstimatedByteSize: Integer; override;
 
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#toBytes(byte[], int)
-    /// </summary>
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#toBytes(byte[], int) </summary>
     function ToBytes(const Data: TArray<Byte>; const Offset: Integer): Integer; override;
     function ToString: string; override;
-    function Clone: TJSONAncestor; override;
-  protected
-
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#addDescendent(com.borland.dbx.transport.JSONAncestor)
-    /// </summary>
-    procedure AddDescendant(const Descendant: TJSONAncestor); override;
-  end;
-
-
-  /// <summary>
-  ///
-  /// </summary>
-  TJSONString = class(TJSONValueM)
-  public
-
-    /// <summary> Converts 0..15 to the equivalent hex digit
-    ///
-    /// </summary>
-    /// <param name="digit">0 to 15 number</param>
-    /// <returns>byte ASCII hex digit code</returns>
-    class function Hex(const Digit: TInt15): Byte; static;
-
-    /// <summary> Constructor for null string. No further changes are supported.
-    /// </summary>
-    /// <remarks> No further changes are supported.
-    /// </remarks>
-    constructor Create; overload;
-
-    /// <summary> Constructor for a given string
-    /// </summary>
-    /// <param name="value">String initial value, cannot be null</param>
-    constructor Create(const Value: string); overload;
-    destructor Destroy; override;
-
-    /// <summary> Adds a character to current content
-    ///
-    /// </summary>
-    /// <param name="ch">char to be appended</param>
-    procedure AddChar(const Ch: WideChar); virtual;
-
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize()
-    /// </summary>
-    function EstimatedByteSize: Integer; override;
-
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#toBytes(byte[], int)
-    /// </summary>
-    function ToBytes(const Data: TArray<Byte>; const Idx: Integer): Integer; override;
-
-    /// <summary> Returns the quoted string content.
-    /// </summary>
-    function ToString: string; override;
-
-    /// <summary> Returns the string content
-    /// </summary>
     function Value: string; override;
     function Clone: TJSONAncestor; override;
-  protected
+  end;
 
+  TJSONString = class(TJSONValueM)
+  protected
+    FStrBuffer: TStringBuilder;
 
     /// <seealso cref="TJSONAncestor.addDescendant(TJSONAncestor)"/>
     procedure AddDescendant(const Descendant: TJSONAncestor); override;
 
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#isNull()
-    /// </summary>
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#isNull() </summary>
     function IsNull: Boolean; override;
-  protected
-    FStrBuffer: TStringBuilder;
+
+    function AsTValue(ATypeInfo: PTypeInfo; out AValue: TValue): Boolean; override;
+
+  public
+    /// <summary> Converts 0..15 to the equivalent hex digit </summary>
+    /// <param name="digit">0 to 15 number</param>
+    /// <returns>byte ASCII hex digit code</returns>
+    class function Hex(const Digit: TInt15): Byte; static;
+
+    /// <summary> Constructor for null string. No further changes are supported. </summary>
+    /// <remarks> No further changes are supported. </remarks>
+    constructor Create; overload;
+
+    /// <summary> Constructor for a given string </summary>
+    /// <param name="value">String initial value, cannot be null</param>
+    constructor Create(const Value: string); overload;
+    destructor Destroy; override;
+
+    /// <summary> Adds a character to current content </summary>
+    /// <param name="ch">char to be appended</param>
+    procedure AddChar(const Ch: WideChar); virtual;
+
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize() </summary>
+    function EstimatedByteSize: Integer; override;
+
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#toBytes(byte[], int) </summary>
+    function ToBytes(const Data: TArray<Byte>; const Idx: Integer): Integer; override;
+
+    /// <summary> Returns the quoted string content. </summary>
+    function ToString: string; override;
+
+    /// <summary> Returns the string content </summary>
+    function Value: string; override;
+    function Clone: TJSONAncestor; override;
   end;
 
   TJSONNumber = class sealed(TJSONString)
+  protected
+    /// <summary> Utility constructor with numerical argument represented as string </summary>
+    /// <param name="value">- string equivalent of a number</param>
+    constructor Create(const Value: string); overload;
+
+    /// <summary> Returns the double representation of the number </summary>
+    /// <returns>double</returns>
+    function GetAsDouble: Double;
+
+    /// <summary> Returns the integer part of the number </summary>
+    /// <returns>int</returns>
+    function GetAsInt: Integer;
+
+    /// <summary> Returns the int64 part of the number </summary>
+    /// <returns>int64</returns>
+    function GetAsInt64: Int64;
+
   public
     constructor Create; overload;
 
-    /// <summary> Constructor for a double number
-    /// </summary>
+    /// <summary> Constructor for a double number </summary>
     /// <param name="value">double to be represented as JSONNumber</param>
     constructor Create(const Value: Double); overload;
 
-    /// <summary> Constructor for integer
-    /// </summary>
+    /// <summary> Constructor for integer </summary>
     /// <param name="value">integer to be represented as JSONNumber</param>
     constructor Create(const Value: Integer); overload;
 
-    /// <summary> Constructor for integer
-    /// </summary>
+    /// <summary> Constructor for integer </summary>
     /// <param name="value">integer to be represented as JSONNumber</param>
     constructor Create(const Value: Int64); overload;
 
     /// <seealso cref="TJSONString.estimatedByteSize()"/>
     function EstimatedByteSize: Integer; override;
 
-    /// <summary> see com.borland.dbx.transport.JSONString#toBytes(byte[], int)
-    /// </summary>
+    /// <summary> see com.borland.dbx.transport.JSONString#toBytes(byte[], int) </summary>
     function ToBytes(const Data: TArray<Byte>; const Idx: Integer): Integer; override;
 
-    /// <summary> Returns the non-localized string representation
-    /// </summary>
+    /// <summary> Returns the non-localized string representation </summary>
     function ToString: string; override;
 
-    /// <summary> Returns the localized representation
-    /// </summary>
+    /// <summary> Returns the localized representation </summary>
     function Value: string; override;
     function Clone: TJSONAncestor; override;
-  protected
-    /// <summary> Utility constructor with numerical argument represented as string
-    ///
-    /// </summary>
-    /// <param name="value">- string equivalent of a number</param>
-    constructor Create(const Value: string); overload;
 
-    /// <summary> Returns the double representation of the number
-    /// </summary>
-    /// <returns>double</returns>
-    function GetAsDouble: Double;
-
-    /// <summary> Returns the integer part of the number
-    /// </summary>
-    /// <returns>int</returns>
-    function GetAsInt: Integer;
-
-    /// <summary> Returns the int64 part of the number
-    /// </summary>
-    /// <returns>int64</returns>
-    function GetAsInt64: Int64;
-  public
-
-    /// <summary> Returns the double representation of the number
-    /// </summary>
+    /// <summary> Returns the double representation of the number </summary>
     /// <returns>double</returns>
     property AsDouble: Double read GetAsDouble;
 
-    /// <summary> Returns the integer part of the number
-    /// </summary>
+    /// <summary> Returns the integer part of the number </summary>
     /// <returns>int</returns>
     property AsInt: Integer read GetAsInt;
 
-    /// <summary> Returns the number as an int64
-    /// </summary>
+    /// <summary> Returns the number as an int64 </summary>
     /// <returns>int64</returns>
     property AsInt64: Int64 read GetAsInt64;
   end;
 
-  /// <summary> Enumerator for JSON pairs
-  ///
-  /// </summary>
+  /// <summary> Enumerator for JSON pairs </summary>
   TJSONPairEnumerator = class
   private
     FIndex: Integer;
-    FDBXArrayList: TDBXArrayList;
+    FList: TList<TJSONPair>;
   public
-    constructor Create(ADBXArrayList: TDBXArrayList);
+    constructor Create(const AList: TList<TJSONPair>);
     function GetCurrent: TJSONPair; inline;
     function MoveNext: Boolean;
     property Current: TJSONPair read GetCurrent;
   end;
 
-  /// <summary> JSON object represents {} or { members }
-  ///
-  /// </summary>
+  /// <summary> JSON object represents {} or { members } </summary>
   TJSONObjectM = class (TJSONValueM)
-  public
+  private
+    FMembers: TList<TJSONPair>;
 
-    /// <summary> Utility function, converts a hex character into hex value [0..15]
-    ///
-    /// </summary>
+    function Parse(const Br: TJSONByteReader): Integer; overload;
+    class procedure ConsumeWhitespaces(const Br: TJSONByteReader); static;
+
+    /// <summary> Consumes a JSON object </summary>
+    /// <param name="Br"> raw byte data</param>
+    /// <param name="Parent"> parent JSON entity</param>
+    /// <returns>next offset</returns>
+    class function ParseObject(const Br: TJSONByteReader; const Parent: TJSONAncestor): Integer; static;
+
+    /// <summary> Consumes JSON pair string:value </summary>
+    /// <param name="Br">raw byte data</param>
+    /// <param name="Parent">parent JSON entity</param>
+    /// <returns>next offset</returns>
+    class function ParsePair(const Br: TJSONByteReader; const Parent: TJSONObjectM): Integer; static;
+
+    /// <summary> Consumes JSON array [...] </summary>
+    /// <param name="Br"> raw byte data</param>
+    /// <param name="Parent"> parent JSON entity</param>
+    /// <returns>next offset</returns>
+    class function ParseArray(const Br: TJSONByteReader; const Parent: TJSONAncestor): Integer; static;
+
+    /// <summary> Consumes JSON values: string, number, object, array, true, false, null </summary>
+    /// <param name="Br">raw byte data</param>
+    /// <param name="Parent">parent JSON entity</param>
+    /// <returns>next offset</returns>
+    class function ParseValue(const Br: TJSONByteReader; const Parent: TJSONAncestor): Integer; static;
+
+    /// <summary> Consumes numbers: int | int frac | int exp | int frac exp </summary>
+    /// <param name="Br">raw byte data</param>
+    /// <param name="Parent">parent JSON entity</param>
+    /// <returns>next offset</returns>
+    class function ParseNumber(const Br: TJSONByteReader; const Parent: TJSONAncestor): Integer; static;
+
+    /// <summary> Consumes a JSON string "..." </summary>
+    /// <param name="Br">raw byte data</param>
+    /// <param name="Parent">parent JSON entity</param>
+    /// <returns>next offset</returns>
+    class function ParseString(const Br: TJSONByteReader; const Parent: TJSONAncestor): Integer; static;
+
+  protected
+    function FindValue(const APath: string): TJSONValueM; override;
+
+    /// <summary> Adds a new member </summary>
+    /// <param name="Descendant">- JSON pair</param>
+    procedure AddDescendant(const Descendant: TJSONAncestor); override;
+
+    /// <summary> Returns the number of members in its content. May be zero </summary>
+    /// <remarks> May be zero </remarks>
+    /// <returns>number of members in its content</returns>
+    function GetCount: Integer;
+
+    /// <summary> Returns the i-th pair or null if i is out of range </summary>
+    /// <param name="I">- pair index</param>
+    /// <returns>the i-th pair or null if index is out of range</returns>
+    function GetPair(const I: Integer): TJSONPair; overload;
+
+    /// <summary> Returns a JSON pair based on the pair string part.
+    ///  The search is case sensitive and it returns the fist pair with string part matching the argument </summary>
+    /// <param name="pairName">- string: the  pair string part</param>
+    /// <returns>- JSONPair : first pair encountered, null otherwise</returns>
+    function GetPairByName(const PairName: string): TJSONPair; overload;
+
+  public
+    /// <summary> Utility function, converts a hex character into hex value [0..15] </summary>
     /// <param name="Value">byte - hex character</param>
     /// <returns>integer - hex value</returns>
     class function HexToDecimal(const Value: Byte): Integer; static;
 
-    /// <summary> Parses a byte array and returns the JSON value from it.
-    /// </summary>
-    /// <remarks>
-    ///  Assumes buffer has only JSON pertinent data.
-    ///
-    /// </remarks>
+    /// <summary> Parses a byte array and returns the JSON value from it. </summary>
+    /// <remarks> Assumes buffer has only JSON pertinent data. </remarks>
     /// <param name="Data">- byte array, not null</param>
     /// <param name="Offset">- offset from which the parsing starts</param>
     /// <param name="IsUTF8">- true if the Data should be treated as UTF-8. Optional, defaults to true</param>
     /// <returns>JSONValue - null if the parse fails</returns>
     class function ParseJSONValue(const Data: TArray<Byte>; const Offset: Integer; IsUTF8: Boolean = True): TJSONValueM; overload; static;
 
-    /// <summary> Parses a byte array and returns the JSON value from it.
-    /// </summary>
-    /// <remarks>
-    /// </remarks>
+    /// <summary> Parses a byte array and returns the JSON value from it. </summary>
     /// <param name="Data">- byte array, not null</param>
     /// <param name="Offset">- offset from which the parsing starts</param>
-    /// <param name="count">- buffer capacity</param>
+    /// <param name="ALength">- buffer capacity</param>
     /// <param name="IsUTF8">- true if the Data should be treated as UTF-8. Optional, defaults to true</param>
     /// <returns>JSONValue - null if the parse fails</returns>
-    class function ParseJSONValue(const Data: TArray<Byte>; const Offset: Integer; const Count: Integer; IsUTF8: Boolean = True): TJSONValueM; overload; static;
+    class function ParseJSONValue(const Data: TArray<Byte>; const Offset: Integer; const ALength: Integer; IsUTF8: Boolean = True): TJSONValueM; overload; static;
 
-    /// <summary> Parses a string and returns the JSON value from it.
-    /// </summary>
+    /// <summary> Parses a string and returns the JSON value from it. </summary>
     /// <param name="Data">- String to parse</param>
     /// <returns>JSONValue - null if the parse fails</returns>
     class function ParseJSONValue(const Data: string): TJSONValueM; overload; static;
 {$IFNDEF NEXTGEN}
     class function ParseJSONValue(const Data: UTF8String): TJSONValueM; overload; static;
-
-    /// <summary> deprecated.  Use ParseJSONValue</summary>
-    class function ParseJSONValueUTF8(const Data: TArray<Byte>; const Offset: Integer;
-                                      const Count: Integer): TJSONValueM; overload; static; deprecated 'Use ParseJSONValue';
-    /// <summary> deprecated.  Use ParseJSONValue</summary>
-    class function ParseJSONValueUTF8(const Data: TArray<Byte>;
-                                      const Offset: Integer): TJSONValueM; overload; static; deprecated 'Use ParseJSONValue';
 {$ENDIF !NEXTGEN}
 
-    /// <summary> Default constructor, initializes the members container
-    /// </summary>
+    /// <summary> Default constructor, initializes the members container </summary>
     constructor Create; overload;
 
-    /// <summary> Convenience constructor - builds an object around a given pair
-    /// </summary>
+    /// <summary> Convenience constructor - builds an object around a given pair </summary>
     /// <param name="Pair">first pair in the object definition, must not be null</param>
     constructor Create(const Pair: TJSONPair); overload;
 
-    /// <summary> Returns the number of members in its content. May be zero
-    /// </summary>
-    /// <remarks> May be zero
-    ///
-    /// </remarks>
-    /// <returns>number of members in its content</returns>
-    function Size: Integer;
-
-    /// <summary> Returns the i-th pair or null if i is out of range
-    ///
-    /// </summary>
-    /// <param name="I">- pair index</param>
-    /// <returns>the i-th pair or null if index is out of range</returns>
-    function Get(const I: Integer): TJSONPair; overload;
-    /// <summary> Returns an enumerator for pairs
-    ///
-    /// </summary>
-    /// <remarks> Allows JSONPairs to be accessed using a for-in loop.
-    ///
-    /// </remarks>
+    /// <summary> Returns an enumerator for pairs </summary>
+    /// <remarks> Allows JSONPairs to be accessed using a for-in loop. </remarks>
     /// <returns>The enumerator</returns>
     function GetEnumerator: TJSONPairEnumerator;
-    /// <summary> Returns a JSON pair based on the pair string part
-    ///
-    ///  The search is case sensitive and it returns the fist pair
-    ///  with string part matching the argument
-    ///
-    /// </summary>
-    /// <param name="pairName">- string: the  pair string part</param>
-    /// <returns>- JSONPair : first pair encountered, null otherwise</returns>
-    function Get(const PairName: string): TJSONPair; overload;
 
-    /// <summary> Releases the stored members
-    /// </summary>
+
+    /// <summary> Returns a JSON pair value based on the pair string part. The search is case sensitive and it returns
+    /// the fist pair with string part matching the argument </summary>
+    /// <param name="Name">- string: the  pair string part</param>
+    /// <returns>- JSONValue : value of the first pair encountered, null otherwise</returns>
+    function GetValue(const Name: string): TJSONValueM; overload;
+
+    /// <summary> Releases the stored members </summary>
     destructor Destroy; override;
 
-    /// <summary> Adds a new pair
-    ///
-    /// </summary>
+    /// <summary> Adds a new pair </summary>
     /// <param name="Pair">- a new pair, cannot be null</param>
     function AddPair(const Pair: TJSONPair): TJSONObjectM; overload;
 
-    /// <summary> Convenience method for adding a pair (name, value).
-    /// </summary>
-    /// <remarks>
-    /// </remarks>
+    /// <summary> Convenience method for adding a pair (name, value). </summary>
     /// <param name="Str">- pair name</param>
     /// <param name="Val">- pair value</param>
     function AddPair(const Str: TJSONString; const Val: TJSONValueM): TJSONObjectM; overload;
 
-    /// <summary> Convenience method for adding a pair to current object.
-    /// </summary>
-    /// <remarks>
-    /// </remarks>
+    /// <summary> Convenience method for adding a pair to current object. </summary>
     /// <param name="Str">- string: pair name</param>
     /// <param name="Val">- JSONValue: pair value</param>
     function AddPair(const Str: string; const Val: TJSONValueM): TJSONObjectM; overload;
@@ -715,261 +471,193 @@ type
 
     function RemovePair(const PairName: string): TJSONPair;
 
-    /// <summary> Returns the number of bytes needed to serialize this object
-    /// </summary>
+    /// <summary> Returns the number of bytes needed to serialize this object </summary>
     function EstimatedByteSize: Integer; override;
 
-    /// <summary> see JSONAncestor#toBytes(byte[], int)
-    /// </summary>
+    /// <summary> see JSONAncestor#toBytes(byte[], int) </summary>
     function ToBytes(const Data: TArray<Byte>; const Idx: Integer): Integer; override;
     function Clone: TJSONAncestor; override;
 
-    /// <summary> Consumes a JSON object byte representation.
-    /// </summary>
-    /// <remarks>
-    ///  It is recommended to use static function parseJSONValue, unless you are familiar
-    ///  with parsing technology. It assumes the buffer has only JSON bytes.
-    ///
-    /// </remarks>
+    /// <summary> Consumes a JSON object byte representation. </summary>
+    /// <remarks> It is recommended to use static function parseJSONValue, unless you are familiar
+    ///  with parsing technology. It assumes the buffer has only JSON bytes. </remarks>
     /// <param name="Data">byte[] with JSON stream</param>
     /// <param name="Pos">position within the byte array to start from, negative number if
     ///    parser fails. If negative, the absolute value is the offset where the failure happens. </param>
     /// <returns>negative number on parse error, byte buffer length on success.</returns>
     function Parse(const Data: TArray<Byte>; const Pos: Integer): Integer; overload;
 
-    /// <summary> Consumes a JSON object byte representation.
-    /// </summary>
-    /// <remarks>
-    ///  It is recommended to use static function parseJSONValue, unless you are familiar
-    ///  with parsing technology.
-    ///
-    /// </remarks>
+    /// <summary> Consumes a JSON object byte representation. </summary>
+    /// <remarks> It is recommended to use static function parseJSONValue, unless you are familiar
+    ///  with parsing technology. </remarks>
     /// <param name="Data">byte[] with JSON stream</param>
     /// <param name="Pos">position within the byte array to start from</param>
     /// <param name="Count">number of bytes</param>
     /// <returns>negative number on parse error</returns>
     function Parse(const Data: TArray<Byte>; const Pos: Integer; const Count: Integer): Integer; overload;
-
-    procedure SetMemberList(AList: TDBXArrayList);
-
+    procedure SetPairs(const AList: TList<TJSONPair>);
     function ToString: string; override;
-  protected
+    property Count: Integer read GetCount;
+    property Pairs[const Index: Integer]: TJSONPair read GetPair;
+    property Values[const Name: string]: TJSONValueM read GetValue;
 
-    /// <summary> Adds a new member
-    ///
-    /// </summary>
-    /// <param name="Descendant">- JSON pair</param>
-    procedure AddDescendant(const Descendant: TJSONAncestor); override;
-  private
-    function Parse(const Br: TJSONByteReader): Integer; overload;
-    class procedure ConsumeWhitespaces(const Br: TJSONByteReader); static;
-
-    /// <summary> Consumes a JSON object
-    ///
-    /// </summary>
-    /// <param name="Br">
-    ///           raw byte data</param>
-    /// <param name="Parent">
-    ///           parent JSON entity</param>
-    /// <returns>next offset</returns>
-    class function ParseObject(const Br: TJSONByteReader; const Parent: TJSONAncestor): Integer; static;
-
-    /// <summary> Consumes JSON pair string:value
-    ///
-    /// </summary>
-    /// <param name="Br">raw byte data</param>
-    /// <param name="Parent">parent JSON entity</param>
-    /// <returns>next offset</returns>
-    class function ParsePair(const Br: TJSONByteReader; const Parent: TJSONObjectM): Integer; static;
-
-    /// <summary> Consumes JSON array [...]
-    ///
-    /// </summary>
-    /// <param name="Br">
-    ///           raw byte data</param>
-    /// <param name="Parent">
-    ///           parent JSON entity</param>
-    /// <returns>next offset</returns>
-    class function ParseArray(const Br: TJSONByteReader; const Parent: TJSONAncestor): Integer; static;
-
-    /// <summary> Consumes JSON values: string, number, object, array, true, false, null
-    ///
-    /// </summary>
-    /// <param name="Br">raw byte data</param>
-    /// <param name="Parent">parent JSON entity</param>
-    /// <returns>next offset</returns>
-    class function ParseValue(const Br: TJSONByteReader; const Parent: TJSONAncestor): Integer; static;
-
-    /// <summary> Consumes numbers: int | int frac | int exp | int frac exp
-    ///
-    /// </summary>
-    /// <param name="Br">raw byte data</param>
-    /// <param name="Parent">parent JSON entity</param>
-    /// <returns>next offset</returns>
-    class function ParseNumber(const Br: TJSONByteReader; const Parent: TJSONAncestor): Integer; static;
-
-    /// <summary> Consumes a JSON string "..."
-    ///
-    /// </summary>
-    /// <param name="Br">raw byte data</param>
-    /// <param name="Parent">parent JSON entity</param>
-    /// <returns>next offset</returns>
-    class function ParseString(const Br: TJSONByteReader; const Parent: TJSONAncestor): Integer; static;
-  private
-    FMembers: TDBXArrayList;
+	{ Deprecated functions }
+    function Size: Integer; inline; deprecated 'Use Count Property';
+    function Get(const Index: Integer): TJSONPair; overload; deprecated 'Use Pairs property';
+    function Get(const Name: string): TJSONPair; overload; // deprecated
+{$IFNDEF NEXTGEN}
+    class function ParseJSONValueUTF8(const Data: TArray<Byte>; const Offset: Integer;
+                                      const ACount: Integer): TJSONValueM; overload; static; deprecated 'Use ParseJSONValue';
+    class function ParseJSONValueUTF8(const Data: TArray<Byte>;
+                                      const Offset: Integer): TJSONValueM; overload; static; deprecated 'Use ParseJSONValue';
+{$ENDIF !NEXTGEN}
   end;
 
 
-  /// <summary> Implements JSON null value
-  ///
-  /// </summary>
+  /// <summary> Implements JSON null value </summary>
   TJSONNull = class sealed(TJSONValueM)
-  public
-
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize()
-    /// </summary>
-    function EstimatedByteSize: Integer; override;
-
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#toBytes(byte[], int)
-    /// </summary>
-    function ToBytes(const Data: TArray<Byte>; const Offset: Integer): Integer; override;
-    function ToString: string; override;
-    function Clone: TJSONAncestor; override;
+  private
+    const  NULLString: string = 'null';
   protected
-
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#addDescendent(com.borland.dbx.transport.JSONAncestor)
-    /// </summary>
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#addDescendent(com.borland.dbx.transport.JSONAncestor) </summary>
     procedure AddDescendant(const Descendant: TJSONAncestor); override;
 
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#isNull()
-    /// </summary>
+    function AsTValue(ATypeInfo: PTypeInfo; out AValue: TValue): Boolean; override;
+
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#isNull() </summary>
     function IsNull: Boolean; override;
-  end;
 
-
-  /// <summary> Implements JSON false value
-  ///
-  /// </summary>
-  TJSONFalse = class sealed(TJSONValueM)
   public
-
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize()
-    /// </summary>
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize() </summary>
     function EstimatedByteSize: Integer; override;
 
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#toBytes(byte[], int)
-    ///
-    /// </summary>
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#toBytes(byte[], int) </summary>
     function ToBytes(const Data: TArray<Byte>; const Offset: Integer): Integer; override;
     function ToString: string; override;
+    function Value: string; override;
     function Clone: TJSONAncestor; override;
-  protected
-
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#addDescendent(com.borland.dbx.transport.JSONAncestor)
-    /// </summary>
-    procedure AddDescendant(const Descendant: TJSONAncestor); override;
   end;
 
-  TJSONArrayM = class;
 
-  /// <summary> Support enumeration of values in a JSONArray.
-  ///
-  /// </summary>
-  TJSONArrayMEnumerator = class
+  /// <summary> Implements JSON false value </summary>
+  TJSONFalse = class sealed(TJSONValueM)
+  private
+    const  FalseString: string = 'false';
+  protected
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#addDescendent(com.borland.dbx.transport.JSONAncestor) </summary>
+    procedure AddDescendant(const Descendant: TJSONAncestor); override;
+    function AsTValue(ATypeInfo: PTypeInfo; out AValue: TValue): Boolean; override;
+  public
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize() </summary>
+    function EstimatedByteSize: Integer; override;
+
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#toBytes(byte[], int) </summary>
+    function ToBytes(const Data: TArray<Byte>; const Offset: Integer): Integer; override;
+    function ToString: string; override;
+    function Value: string; override;
+    function Clone: TJSONAncestor; override;
+  end;
+
+  TJSONArray = class;
+
+  /// <summary> Support enumeration of values in a JSONArray. </summary>
+  TJSONArrayEnumerator = class
   private
     FIndex: Integer;
-    FArray: TJSONArrayM;
+    FArray: TJSONArray;
   public
-    constructor Create(AArray: TJSONArrayM);
+    constructor Create(const AArray: TJSONArray);
     function GetCurrent: TJSONValueM; inline;
     function MoveNext: Boolean;
     property Current: TJSONValueM read GetCurrent;
   end;
 
-  /// <summary> Implements JSON array [] | [ elements ]
-  ///
-  /// </summary>
-  TJSONArrayM = class (TJSONValueM)
-  public
+  /// <summary> Implements JSON array [] | [ elements ] </summary>
+  TJSONArray = class sealed(TJSONValueM)
+  private
+    FElements: TList<TJSONValueM>;
 
-    /// <summary> Default constructor, initializes the container
-    /// </summary>
+  protected
+    function FindValue(const APath: string): TJSONValueM; override;
+
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#addDescendent(com.borland.dbx.transport.JSONAncestor) </summary>
+    procedure AddDescendant(const Descendant: TJSONAncestor); override;
+
+    /// <summary> Removes the first element from the element list. </summary>
+    /// <remarks> No checks are made, it is the caller responsibility to check if there is at least one element. </remarks>
+    /// <returns>JSONValue</returns>
+    function Pop: TJSONValueM;
+
+    /// <summary> Returns the array component, null if index is out of range </summary>
+    /// <param name="Index">- element index</param>
+    /// <returns>JSONValue element, null if index is out of range</returns>
+    function GetValue(const Index: Integer): TJSONValueM; overload;
+    /// <summary> Returns the array size </summary>
+    /// <returns>int - array size</returns>
+    function GetCount: Integer;
+
+
+  public
+    /// <summary> Default constructor, initializes the container </summary>
     constructor Create; overload;
 
-    /// <summary> Convenience constructor, wraps an array around a JSON value
-    /// </summary>
-    /// <param name="firstElem">JSON value</param>
+    /// <summary> Convenience constructor, wraps an array around a JSON value </summary>
+    /// <param name="FirstElem">JSON value</param>
     constructor Create(const FirstElem: TJSONValueM); overload;
 
-    /// <summary> Convenience constructor, wraps an array around a JSON value
-    /// </summary>
-    /// <param name="firstElem">JSON value</param>
+    /// <summary> Convenience constructor, wraps an array around a JSON value </summary>
+    /// <param name="FirstElem">JSON value</param>
     /// <param name="SecondElem">JSON value</param>
     constructor Create(const FirstElem: TJSONValueM; const SecondElem: TJSONValueM); overload;
 
     constructor Create(const FirstElem: string; const SecondElem: string); overload;
-    /// <summary> frees the container elements
-    /// </summary>
+    /// <summary> frees the container elements </summary>
     destructor Destroy; override;
 
-    /// <summary> Returns the array size
-    ///
-    /// </summary>
+    /// <summary> Returns the array size </summary>
     /// <returns>int - array size</returns>
-    function Size: Integer;
+    property Count: Integer read GetCount;
 
-    /// <summary> Returns the array component, null if index is out of range
-    ///
-    /// </summary>
-    /// <param name="index">- element index</param>
+
+    /// <summary> Returns the array component, null if index is out of range </summary>
+    /// <param name="Index">- element index</param>
     /// <returns>JSONValue element, null if index is out of range</returns>
-    function Get(const Index: Integer): TJSONValueM;
+    property Items[const Index: Integer]: TJSONValueM read GetValue;
 
-    /// <summary>Removes the item at the given index, returning the removed item (or nil)</summary>
+
+    /// <summary>Removes the pair at the given index, returning the removed pair (or nil)</summary>
     function Remove(Index: Integer): TJSONValueM;
 
-    /// <summary> Adds a non-null value to the current element list
-    ///
-    /// </summary>
-    /// <param name="element">string object cannot be null</param>
+    /// <summary> Adds a non-null value to the current element list </summary>
+    /// <param name="Element">string object cannot be null</param>
     procedure AddElement(const Element: TJSONValueM);
-    function Add(const Element: string): TJSONArrayM; overload;
-    function Add(const Element: Integer): TJSONArrayM; overload;
-    function Add(const Element: Double): TJSONArrayM; overload;
-    function Add(const Element: Boolean): TJSONArrayM; overload;
-    function Add(const Element: TJSONObjectM): TJSONArrayM; overload;
-    function Add(const Element: TJSONArrayM): TJSONArrayM; overload;
+    function Add(const Element: string): TJSONArray; overload;
+    function Add(const Element: Integer): TJSONArray; overload;
+    function Add(const Element: Double): TJSONArray; overload;
+    function Add(const Element: Boolean): TJSONArray; overload;
+    function Add(const Element: TJSONObjectM): TJSONArray; overload;
+    function Add(const Element: TJSONArray): TJSONArray; overload;
 
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize()
-    /// </summary>
+    /// <summary> see com.borland.dbx.transport.JSONAncestor#estimatedByteSize() </summary>
     function EstimatedByteSize: Integer; override;
 
-    procedure SetElements(AList: TDBXArrayList);
+    procedure SetElements(const AList: TList<TJSONValueM>);
 
-    // / <seealso cref="TJSONAncestor.toBytes(TArray<Byte>,Integer)"/>
+    // / <seealso cref="TJSONAncestor.ToBytes(TArray<Byte>,Integer)"/>
     function ToBytes(const Data: TArray<Byte>; const Pos: Integer): Integer; override;
     function ToString: string; override;
     function Clone: TJSONAncestor; override;
-    function GetEnumerator: TJSONArrayMEnumerator;
-  protected
+    function GetEnumerator: TJSONArrayEnumerator;
 
-    /// <summary> see com.borland.dbx.transport.JSONAncestor#addDescendent(com.borland.dbx.transport.JSONAncestor)
-    /// </summary>
-    procedure AddDescendant(const Descendant: TJSONAncestor); override;
-
-    /// <summary> Removes the first element from the element list.
-    /// </summary>
-    /// <remarks>
-    ///  No checks are made, it is the caller responsibility to check if there is at least one element.
-    ///
-    /// </remarks>
-    /// <returns>JSONValue</returns>
-    function Pop: TJSONValueM;
-  private
-    FElements: TDBXArrayList;
+	{ Deprecated functions }
+    function Size: Integer; inline; deprecated 'Use Count Property';
+    function Get(const Index: Integer): TJSONValueM; deprecated 'Use Items property';
   end;
 
-{ Classe por Leandro Medeiros - Desenvolvido em 10/04/2013 }
+
+{******************************************************************************
+ *********************** Classe por Leandro Medeiros **************************
+ ******************************************************************************}
   TJSONExtended = class sealed (TJSONObjectM)
   public
     constructor Create(const ASerializedJSON: string); overload;
@@ -986,130 +674,317 @@ type
     function GetDtTime(const APropertyName: string; const ADefaultValue: TDateTime = 0): TDateTime;
     function GetDate(const APropertyName: string; const ADefaultValue: TDate = 0): TDate;
   end;
+{*********************************************** Desenvolvido em 16/07/2014 ***}
 
-function GetUSFormat : TFormatSettings;
+
+  function GetJSONFormat: TFormatSettings;
+  function FloatToJson(const Value: Double): string;
+  function JsonToFloat(const DotValue: string): Double;
+  function TryJsonToFloat(const DotValue: string; var Value: Double): Boolean;
 
 implementation
 
 uses
-  Data.DBXCommonResStrs, Data.DBXCommon, System.StrUtils, Lib.StrUtils, IdGlobalProtocols;
+  System.Classes, System.DateUtils, System.SysConst, System.StrUtils,
+  System.Types, System.Character, System.JSONConsts, Lib.StrUtils, IdGlobalProtocols;
 
 const
   HexChars = '0123456789ABCDEF';
 
-
-function GetUSFormat : TFormatSettings;
-begin
-  Result := TFormatSettings.Create( 'en-US' );
-end;
-
-procedure TDBXCallback.SetConnectionHandler(const ConnectionHandler: TObject);
-begin
-end;
-
-procedure TDBXCallback.SetDsServer(const DsServer: TObject);
-begin
-end;
-
-procedure TDBXCallback.SetOrdinal(const Ordinal: Integer);
-begin
-end;
-
-{$IFNDEF AUTOREFCOUNT}
-function TDBXCallback.AddRef: Integer;
-begin
-  Inc(FFRefCount);
-  Result := FFRefCount;
-end;
-
-function TDBXCallback.Release: Integer;
 var
-  Count: Integer;
-begin
-  Dec(FFRefCount);
-  Count := FFRefCount;
-  if Count <= 0 then
-    self.Free;
-  Result := Count;
-end;
-{$ENDIF !AUTOREFCOUNT}
+  JSONFormatSettings: TFormatSettings;
 
-function TDBXCallback.IsConnectionLost: Boolean;
+
+function GetJSONFormat: TFormatSettings;
 begin
-  Result := False;
+  Result := JSONFormatSettings;
 end;
 
-destructor TDBXCallbackDelegate.Destroy;
+function IncrAfter(var Arg: Integer): Integer;
 begin
-  FreeAndNil(FDelegate);
-  inherited Destroy;
+  Result := Arg;
+  Inc(Arg);
 end;
 
-function TDBXCallbackDelegate.Execute(const Arg: TJSONValueM): TJSONValueM;
+function DecrAfter(var Arg: Integer): Integer;
 begin
-  Result := FDelegate.Execute(Arg);
+  Result := Arg;
+  Dec(Arg);
 end;
 
-function TDBXCallbackDelegate.Execute(Arg: TObject): TObject;
+function FloatToJson(const Value: Double): string;
 begin
-  Result := FDelegate.Execute(Arg);
+  Result := FloatToStr(Value, JSONFormatSettings);
 end;
 
-procedure TDBXCallbackDelegate.SetDelegate(const Callback: TDBXCallback);
+function JsonToFloat(const DotValue: string): Double;
 begin
-  FDelegate := Callback;
-  if FDelegate <> nil then
+  Result := StrToFloat(DotValue, JSONFormatSettings);
+end;
+
+function TryJsonToFloat(const DotValue: string; var Value: Double): Boolean;
+begin
+  Result := TryStrToFloat(DotValue, Value, JSONFormatSettings);
+end;
+
+
+function StrToTValue(const Str: string; const TypeInfo: PTypeInfo; out AValue: TValue): Boolean;
+
+  function CheckRange(const Min, Max: Int64; const Value: Int64; const Str: string): Int64;
   begin
-    FDelegate.Ordinal := FOrdinal;
-    FDelegate.ConnectionHandler := FConnectionHandler;
-    FDelegate.DsServer := FDsServer;
+    Result := Value;
+    if (Value < Min) or (Value > Max) then
+      raise EConvertError.CreateFmt(System.SysConst.SInvalidInteger, [Str]);
+  end;
+var
+  TypeData: TTypeData;
+  TypeName: string;
+begin
+  Result := True;
+  case TypeInfo.Kind of
+    tkInteger:
+      case GetTypeData(TypeInfo)^.OrdType of
+        otSByte: AValue := CheckRange(Low(Int8), High(Int8), StrToInt(Str), Str);
+        otSWord: AValue := CheckRange(Low(Int16), High(Int16), StrToInt(Str), Str);
+        otSLong: AValue := StrToInt(Str);
+        otUByte: AValue := CheckRange(Low(UInt8), High(UInt8), StrToInt(Str), Str);
+        otUWord: AValue := CheckRange(Low(UInt16), High(UInt16), StrToInt(Str), Str);
+        otULong: AValue := CheckRange(Low(UInt32), High(UInt32), StrToInt64(Str), Str);
+      end;
+    tkInt64:
+      begin
+        TypeData := GetTypeData(TypeInfo)^;
+        if TypeData.MinInt64Value > TypeData.MaxInt64Value then
+          AValue := StrToUInt64(Str)
+        else
+          AValue := StrToInt64(Str);
+      end;
+    tkEnumeration:
+      begin
+        TypeName := TypeInfo.NameFld.ToString;
+        if SameText(TypeName, 'boolean') or SameText(TypeName, 'bool') then
+          AValue := StrToBool(Str)
+        else
+          Result := False;
+      end;
+    tkFloat:
+      case GetTypeData(TypeInfo)^.FloatType of
+        ftSingle: AValue := StrToFloat(Str);
+        ftDouble:
+        begin
+          if TypeInfo = System.TypeInfo(TDate) then
+            AValue := ISO8601ToDate(Str)
+          else if TypeInfo = System.TypeInfo(TTime) then
+            AValue := ISO8601ToDate(Str)
+          else if TypeInfo = System.TypeInfo(TDateTime) then
+            AValue := ISO8601ToDate(Str)
+          else
+            AValue := StrToFloat(Str)
+        end;
+        ftExtended: AValue := StrToFloat(Str);
+        ftComp: AValue := StrToFloat(Str);
+        ftCurr: AValue := StrToCurr(Str);
+      end;
+{$IFNDEF NEXTGEN}
+    tkChar,
+{$ENDIF !NEXTGEN}
+    tkWChar:
+      begin
+        if Str.Length = 1 then
+          AValue := Str[Low(string)]
+        else
+          Result := False;
+      end;
+    tkString, tkLString, tkUString, tkWString:
+      AValue := Str;
+    else
+      Result := False;
   end;
 end;
 
-function TDBXCallbackDelegate.GetDelegate: TDBXCallback;
+type
+ // Parse a path with names and indexes.
+  // Examples: 'name', '[0]', 'entities.urls[0].indices[1]'
+ TPathStringParser = class
+  public type
+    TToken = (Undefined, Name, ArrayIndex, EOF, Error);
+  private
+    FStrings: TStringDynArray;
+    FTokenString: string;
+    FTokenStringPos: Integer;
+    FToken: TToken;
+    FTokenArrayIndex: Integer;
+    FTokenName: string;
+    FStringsIndex: Integer;
+    function GetEOF: Boolean;
+  public
+    constructor Create(const APath: string);
+    function NextToken: TToken;
+    property EOF: Boolean read GetEOF;
+    property Token: TToken read FToken;
+    property TokenName: string read FTokenName;
+    property TokenArrayIndex: Integer read FTokenArrayIndex;
+  end;
+
+{ TPathStringParser }
+
+constructor TPathStringParser.Create(const APath: string);
 begin
-  Result := FDelegate;
+  FStrings := SplitString(APath, JSONFormatSettings.DecimalSeparator);
+  FStringsIndex := -1;
+  FTokenStringPos := -1;
 end;
 
-function TDBXCallbackDelegate.IsConnectionLost: Boolean;
+function TPathStringParser.GetEOF: Boolean;
 begin
-  if Assigned(FDelegate) then
-    Exit(FDelegate.ConnectionLost);
-
-  Exit(False);
+  Result := FStringsIndex >= Length(FStrings);
+  // Check consistency
+  Assert(not Result or (FToken in [TToken.Undefined, TToken.EOF]));
 end;
 
-procedure TDBXCallbackDelegate.SetConnectionHandler(const ConnectionHandler: TObject);
+function TPathStringParser.NextToken: TToken;
+var
+  LTokenSubString: string;
+
+  function NextSegment: Boolean;
+  var
+    LPosEnd: Integer;
+  begin
+    if FTokenStringPos < 0 then
+    begin
+      Inc(FStringsIndex);
+      if FStringsIndex >=  Length(FStrings) then
+        FToken := TToken.EOF;
+      Result := FToken <> TToken.EOF;
+      if Result then
+      begin
+        FTokenStringPos := 0;
+        FTokenString := FStrings[FStringsIndex];
+      end;
+    end
+    else
+      Result := True;
+    if Result then
+    begin
+      if FTokenString.Chars[FTokenStringPos] = '[' then
+      begin
+        // Array index
+        LPosEnd := FTokenString.IndexOf(']', FTokenStringPos+1);
+        if LPosEnd > 0 then
+        begin
+          LTokenSubString := FTokenString.Substring(FTokenStringPos+1, LPosEnd - FTokenStringPos - 1);
+          FTokenStringPos := LPosEnd+1;
+          FToken := TToken.ArrayIndex;
+        end
+        else
+          FToken := TToken.Error;
+      end
+      else
+      begin
+        // Name
+        LPosEnd := FTokenString.IndexOf('[', FTokenStringPos+1);
+        if LPosEnd > 0 then
+        begin
+          // Name followed by index
+          LTokenSubString := FTokenString.Substring(FTokenStringPos, LPosEnd - FTokenStringPos);
+          FTokenStringPos := LPosEnd;
+        end
+        else
+        begin
+          // Just name
+          LTokenSubString := FTokenString.Substring(FTokenStringPos);
+          FTokenStringPos := -1;
+        end;
+        FToken := TToken.Name;
+      end;
+      if FTokenStringPos >= FTokenString.Length then
+        FTokenStringPos := -1;
+    end;
+  end;
+
 begin
-  FConnectionHandler := ConnectionHandler;
-  if FDelegate <> nil then
-    FDelegate.ConnectionHandler := ConnectionHandler;
+  if EOF then
+    raise Exception.Create(sEndOfPath);
+  if FToken = TToken.Error then
+    raise Exception.Create(sErrorInPath);
+
+  if not NextSegment then
+    Exit(FToken);
+
+  Assert(LTokenSubString.Length > 0);
+  case FToken of
+    TToken.Name:
+    begin
+      // Don't validate text.  Just about any text can be a name in JSON
+      FTokenName := LTokenSubString;
+      Assert(FTokenName.Length > 0);
+    end;
+    TToken.ArrayIndex:
+    begin
+      if not TryStrToInt(LTokenSubString, FTokenArrayIndex) then
+        FToken := TToken.Error
+
+    end;
+  end;
+  Result := FToken;
 end;
 
-procedure TDBXCallbackDelegate.SetOrdinal(const Ordinal: Integer);
+// Traverse a JSONObject or TJSONArray and find the TJSONValueM identified by a path string
+function FindJSONValue(const AJSON: TJSONValueM; const APath: string): TJSONValueM; overload;
+var
+  LCurrentValue: TJSONValueM;
+  LParser: TPathStringParser;
+  LError: Boolean;
 begin
-  FOrdinal := Ordinal;
-  if FDelegate <> nil then
-    FDelegate.Ordinal := Ordinal;
+  LParser := TPathStringParser.Create(APath);
+  try
+    LCurrentValue := AJSON;
+    LError := False;
+    while (not LParser.EOF) and (not LError) do
+    begin
+      case LParser.NextToken of
+        TPathStringParser.TToken.Name:
+        begin
+          if LCurrentValue is TJSONObjectM then
+          begin
+            LCurrentValue := TJSONObjectM(LCurrentValue).Values[LParser.TokenName];
+            if LCurrentValue = nil then
+              LError := True;
+          end
+          else
+            LError := True;
+        end;
+        TPathStringParser.TToken.ArrayIndex:
+        begin
+          if LCurrentValue is TJSONArray then
+            if LParser.TokenArrayIndex < TJSONArray(LCurrentValue).Count then
+              LCurrentValue := TJSONArray(LCurrentValue).Items[LParser.TokenArrayIndex]
+            else
+              LError := True
+          else
+            LError := True
+        end;
+        TPathStringParser.TToken.Error:
+          LError := True;
+      else
+        Assert(LParser.Token = TPathStringParser.TToken.EOF); // case statement is not complete
+      end;
+    end;
+
+    if LParser.EOF and not LError then
+      Result := LCurrentValue
+    else
+      Result := nil;
+
+  finally
+    LParser.Free;
+  end;
 end;
 
-procedure TDBXCallbackDelegate.SetDsServer(const DsServer: TObject);
-begin
-  FDsServer := DsServer;
-  if FDelegate <> nil then
-    FDelegate.DsServer := DsServer;
-end;
 
-constructor TDBXNamedCallback.Create(const Name: string);
-begin
-  inherited Create;
-  FName := Name;
-end;
 
-function TDBXNamedCallback.GetName: string;
-begin
-  Result := FName;
-end;
+
+{ TJSONAncestor }
 
 constructor TJSONAncestor.Create;
 begin
@@ -1124,7 +999,7 @@ end;
 
 function TJSONAncestor.Value: string;
 begin
-  Result := NullString;
+  Result := '';
 end;
 
 procedure TJSONAncestor.SetOwned(const Own: Boolean);
@@ -1136,6 +1011,8 @@ function TJSONAncestor.GetOwned: Boolean;
 begin
   Result := FOwned;
 end;
+
+{ TJSONByteReader }
 
 constructor TJSONByteReader.Create(const Data: TArray<Byte>; const Offset: Integer; const Range: Integer);
 begin
@@ -1202,9 +1079,9 @@ begin
     if (FData[FOffset] and (Byte(224))) = Byte(192) then
     begin
       if FOffset + 1 >= FRange then
-        raise TJSONException.Create(Format(SUTF8Start, [TDBXInt32Object.Create(FOffset)]));
+        raise EJSONException.CreateFmt(SUTF8Start, [FOffset]);
       if (FData[FOffset + 1] and (Byte(192))) <> Byte(128) then
-        raise TJSONException.Create(Format(SUTF8UnexpectedByte, [TDBXInt32Object.Create(2),TDBXInt32Object.Create(FOffset + 1)]));
+        raise EJSONException.CreateFmt(SUTF8UnexpectedByte, [2, FOffset + 1]);
       SetLength(FUtf8data,6);
       FUtf8length := 6;
       FUtf8data[0] := Ord('\');
@@ -1218,11 +1095,11 @@ begin
     else if (FData[FOffset] and (Byte(240))) = Byte(224) then
     begin
       if FOffset + 2 >= FRange then
-        raise TJSONException.Create(Format(SUTF8Start, [TDBXInt32Object.Create(FOffset)]));
+        raise EJSONException.CreateFmt(SUTF8Start, [FOffset]);
       if (FData[FOffset + 1] and (Byte(192))) <> Byte(128) then
-        raise TJSONException.Create(Format(SUTF8UnexpectedByte, [TDBXInt32Object.Create(3),TDBXInt32Object.Create(FOffset + 1)]));
+        raise EJSONException.CreateFmt(SUTF8UnexpectedByte, [3, FOffset + 1]);
       if (FData[FOffset + 2] and (Byte(192))) <> Byte(128) then
-        raise TJSONException.Create(Format(SUTF8UnexpectedByte, [TDBXInt32Object.Create(3),TDBXInt32Object.Create(FOffset + 2)]));
+        raise EJSONException.CreateFmt(SUTF8UnexpectedByte, [3, FOffset + 2]);
       SetLength(FUtf8data,6);
       FUtf8length := 6;
       FUtf8data[0] := Ord('\');
@@ -1236,13 +1113,13 @@ begin
     else if (FData[FOffset] and (Byte(248))) = Byte(240) then
     begin
       if FOffset + 3 >= FRange then
-        raise TJSONException.Create(Format(SUTF8Start, [TDBXInt32Object.Create(FOffset)]));
+        raise EJSONException.CreateFmt(SUTF8Start, [FOffset]);
       if (FData[FOffset + 1] and (Byte(192))) <> Byte(128) then
-        raise TJSONException.Create(Format(SUTF8UnexpectedByte, [TDBXInt32Object.Create(4),TDBXInt32Object.Create(FOffset + 1)]));
+        raise EJSONException.CreateFmt(SUTF8UnexpectedByte, [4,FOffset + 1]);
       if (FData[FOffset + 2] and (Byte(192))) <> Byte(128) then
-        raise TJSONException.Create(Format(SUTF8UnexpectedByte, [TDBXInt32Object.Create(4),TDBXInt32Object.Create(FOffset + 2)]));
+        raise EJSONException.CreateFmt(SUTF8UnexpectedByte, [4,FOffset + 2]);
       if (FData[FOffset + 3] and (Byte(192))) <> Byte(128) then
-        raise TJSONException.Create(Format(SUTF8UnexpectedByte, [TDBXInt32Object.Create(4),TDBXInt32Object.Create(FOffset + 3)]));
+        raise EJSONException.CreateFmt(SUTF8UnexpectedByte, [4,FOffset + 3]);
       Bmp := FData[FOffset] and Byte(7);
       Bmp := (Bmp shl 6) or (FData[FOffset + 1] and Byte(63));
       Bmp := (Bmp shl 6) or (FData[FOffset + 2] and Byte(63));
@@ -1269,7 +1146,7 @@ begin
       FOffset := FOffset + 4;
     end
     else
-      raise TJSONException.Create(Format(SUTF8InvalidHeaderByte, [TDBXInt32Object.Create(FOffset)]));
+      raise EJSONException.CreateFmt(SUTF8InvalidHeaderByte, [FOffset]);
     Result := FUtf8data[FUtf8offset];
   end
   else
@@ -1296,10 +1173,14 @@ begin
     Result := False;
 end;
 
-constructor TJSONException.Create(const ErrorMessage: string);
+{ EJSONException }
+
+constructor EJSONException.Create(const ErrorMessage: string);
 begin
   inherited Create(ErrorMessage);
 end;
+
+{ TJSONPair }
 
 constructor TJSONPair.Create;
 begin
@@ -1346,7 +1227,7 @@ begin
     FJsonString := Descendant;
 end;
 
-procedure TJSONPair.SeTJSONValueM(const Val: TJSONValueM);
+procedure TJSONPair.SetJsonValue(const Val: TJSONValueM);
 begin
   if Val <> nil then
     FJsonValue := Val;
@@ -1371,7 +1252,7 @@ begin
   Result := FJsonString;
 end;
 
-function TJSONPair.GeTJSONValueM: TJSONValueM;
+function TJSONPair.GetJsonValue: TJSONValueM;
 begin
   Result := FJsonValue;
 end;
@@ -1381,7 +1262,7 @@ begin
   if (FJsonString <> nil) and (FJsonValue <> nil) then
     Result := FJsonString.ToString + ':' + FJsonValue.ToString
   else
-    Result := NullString;
+    Result := '';
 end;
 
 function TJSONPair.Clone: TJSONAncestor;
@@ -1389,8 +1270,114 @@ begin
   Result := TJSONPair.Create(TJSONString(FJsonString.Clone), TJSONValueM(FJsonValue.Clone));
 end;
 
+{ TJSONValueM }
+
+function TJSONValueM.GetValue<T>(const APath: string; ADefaultValue: T): T;
+var
+  LValue: T;
+  LJSONValue: TJSONValueM;
+  LTypeInfo: PTypeInfo;
+  LReturnDefault: Boolean;
+begin
+  LJSONValue := FindValue(APath);
+  LReturnDefault := LJSONValue = nil;
+
+  // Treat JSONNull as nil
+  if LJSONValue is TJSONNull then
+  begin
+    LTypeInfo := System.TypeInfo(T);
+    if LTypeInfo.TypeData.ClassType <> nil then
+      LJSONValue := nil;
+  end;
+
+  if LJSONValue <> nil then
+    Result := LJSONValue.Cast<T>
+  else
+    Result := ADefaultValue
+end;
+
+function TJSONValueM.GetValue<T>(const APath: string): T;
+var
+  LValue: T;
+  LJSONValue: TJSONValueM;
+begin
+  LJSONValue := FindValue(APath);
+  if LJSONValue = nil then
+    raise EJSONException.Create(Format(SValueNotFound, [APath]));
+  Result := LJSONValue.Cast<T>;
+end;
+
+function TJSONValueM.FindValue(const APath: string): TJSONValueM;
+begin
+  if APath = '' then
+    Result := Self
+  else
+    Result := nil;
+end;
+
+function TJSONValueM.AsTValue(ATypeInfo: PTypeInfo; out AValue: TValue): Boolean;
+begin
+  Result := True;
+  case ATypeInfo^.Kind of
+    tkClass:
+      AValue := Self;
+    else
+      Result := False;
+  end;
+end;
+
+function TJSONValueM.Cast<T>: T;
+var
+  Size: Integer;
+  LTypeInfo: PTypeInfo;
+  LValue: TValue;
+begin
+  LTypeInfo := System.TypeInfo(T);
+  if not AsTValue(LTypeInfo, LValue) then
+    raise EJSONException.CreateFmt(sCannotConvertJSONValueToType, [Self.ClassName, LTypeInfo.Name]);
+  Result := LValue.AsType<T>;
+end;
+
+function TJSONValueM.TryGetValue<T>(out AValue: T): Boolean;
+begin
+  Result := TryGetValue<T>('', AValue);
+end;
+
+function TJSONValueM.TryGetValue<T>(const APath: string; out AValue: T): Boolean;
+var
+  LJSONValue: TJSONValueM;
+begin
+  LJSONValue := FindValue(APath);
+  Result := LJSONValue <> nil;
+  if Result then
+  begin
+    try
+      AValue := LJSONValue.Cast<T>;
+    except
+      Result := False;
+    end;
+  end;
+end;
+
+{ TJSONTrue }
+
 procedure TJSONTrue.AddDescendant(const Descendant: TJSONAncestor);
 begin
+end;
+
+function TJSONTrue.AsTValue(ATypeInfo: PTypeInfo; out AValue: TValue): Boolean;
+begin
+  Result := True;
+  case ATypeInfo.Kind of
+    tkEnumeration:
+      Result := StrToTValue(TrueString, ATypeInfo, AValue);
+    tkInteger, tkInt64, tkFloat:
+      AValue := 1;
+    tkString, tkLString, tkWString, tkUString:
+      AValue := TrueString
+    else
+      Result := Inherited;
+  end;
 end;
 
 function TJSONTrue.EstimatedByteSize: Integer;
@@ -1412,13 +1399,20 @@ end;
 
 function TJSONTrue.ToString: string;
 begin
-  Result := 'true';
+  Result := TrueString;
+end;
+
+function TJSONTrue.Value: string;
+begin
+  Result := TrueString;
 end;
 
 function TJSONTrue.Clone: TJSONAncestor;
 begin
   Result := TJSONTrue.Create;
 end;
+
+{ TJSONString }
 
 class function TJSONString.Hex(const Digit: TInt15): Byte;
 begin
@@ -1454,15 +1448,33 @@ end;
 function TJSONString.IsNull: Boolean;
 begin
   if FStrBuffer = nil then
-    Exit(True);
-  Result := False;
+    Result := True
+  else
+    Result := False;
+end;
+
+function TJSONString.AsTValue(ATypeInfo: PTypeInfo; out AValue: TValue): Boolean;
+begin
+  case ATypeInfo.Kind of
+    tkInteger, tkInt64, tkFloat,
+    tkString, tkLString, tkWString, tkUString,
+{$IFNDEF NEXTGEN}
+    tkChar,
+{$ENDIF !NEXTGEN}
+    tkWChar,
+    tkEnumeration:
+      Result := StrToTValue(FStrBuffer.ToString, ATypeInfo, AValue)
+    else
+      Result := Inherited;
+  end;
 end;
 
 function TJSONString.EstimatedByteSize: Integer;
 begin
   if Null then
-    Exit(4);
-  Result := 2 + 6 * FStrBuffer.Length;
+    Result := 4
+  else
+    Result := 2 + 6 * FStrBuffer.Length;
 end;
 
 function TJSONString.ToBytes(const Data: TArray<Byte>; const Idx: Integer): Integer;
@@ -1552,15 +1564,16 @@ end;
 
 function TJSONString.ToString: string;
 begin
-  if FStrBuffer <> nil then
-    Exit('"' + AnsiReplaceStr(FStrBuffer.ToString, '"', '\"') + '"');
-  Result := NullString;
+  if FStrBuffer = nil then
+    Result := ''
+  else
+    Result := '"' + AnsiReplaceStr(FStrBuffer.ToString, '"', '\"') + '"';
 end;
 
 function TJSONString.Value: string;
 begin
   if FStrBuffer = nil then
-    Result := NullString
+    Result := ''
   else
     Result := FStrBuffer.ToString;
 end;
@@ -1573,6 +1586,8 @@ begin
     Result := TJSONString.Create(Value);
 end;
 
+{ TJSONNumber }
+
 constructor TJSONNumber.Create;
 begin
   inherited Create('');
@@ -1580,7 +1595,7 @@ end;
 
 constructor TJSONNumber.Create(const Value: Double);
 begin
-  inherited Create(TDBXPlatform.JsonFloat(Value));
+  inherited Create(FloatToJson(Value));
 end;
 
 constructor TJSONNumber.Create(const Value: string);
@@ -1631,10 +1646,10 @@ var
   BuffStr: string;
 begin
   BuffStr := FStrBuffer.ToString;
-  if (FStrBuffer.Length > 11) and (AnsiPos('.', BuffStr) = 0) then
+  if (FStrBuffer.Length > 11) and (not BuffStr.Contains(JSONFormatSettings.DecimalSeparator)) then
     Result := IntToStr(GetAsInt64)
   else
-    Result := FloatToStr(TDBXPlatform.JsonToFloat(BuffStr));
+    Result := FloatToStr(JsonToFloat(BuffStr));
 end;
 
 function TJSONNumber.Clone: TJSONAncestor;
@@ -1644,7 +1659,7 @@ end;
 
 function TJSONNumber.GetAsDouble: Double;
 begin
-  Result := TDBXPlatform.JsonToFloat(FStrBuffer.ToString);
+  Result := JsonToFloat(FStrBuffer.ToString);
 end;
 
 function TJSONNumber.GetAsInt: Integer;
@@ -1656,6 +1671,8 @@ function TJSONNumber.GetAsInt64: Int64;
 begin
   Result := StrToInt64(FStrBuffer.ToString);
 end;
+
+{ TJSONObjectM }
 
 class function TJSONObjectM.HexToDecimal(const Value: Byte): Integer;
 begin
@@ -1676,18 +1693,18 @@ begin
 end;
 
 class function TJSONObjectM.ParseJSONValue(const Data: TArray<Byte>; const Offset: Integer;
-                                          const Count: Integer; IsUTF8: Boolean): TJSONValueM;
+                                          const ALength: Integer; IsUTF8: Boolean): TJSONValueM;
 var
-  Parent: TJSONArrayM;
+  Parent: TJSONArray;
   Answer: TJSONValueM;
   Br: TJSONByteReader;
 begin
-  Parent := TJSONArrayM.Create;
+  Parent := TJSONArray.Create;
   Answer := nil;
-  Br := TJSONByteReader.Create(Data, Offset, Count, IsUTF8);
+  Br := TJSONByteReader.Create(Data, Offset, ALength, IsUTF8);
   try
     ConsumeWhitespaces(Br);
-    if (ParseValue(Br, Parent) = Count) and (Parent.Size = 1) then
+    if (ParseValue(Br, Parent) = ALength) and (Parent.Count = 1) then
       Answer := Parent.Pop;
     Result := Answer;
   finally
@@ -1707,21 +1724,21 @@ begin
   Result := ParseJSONValue(BytesOf(Data), 0, True);
 end;
 
-class function TJSONObjectM.ParseJSONValueUTF8(const Data: TArray<Byte>; const Offset: Integer; const Count: Integer): TJSONValueM;
+class function TJSONObjectM.ParseJSONValueUTF8(const Data: TArray<Byte>; const Offset: Integer; const ACount: Integer): TJSONValueM;
 begin
-  Result := ParseJSONValue(Data, Offset, Count, True);
+  Result := ParseJSONValue(Data, Offset, ACount, True);
 end;
 
 class function TJSONObjectM.ParseJSONValueUTF8(const Data: TArray<Byte>; const Offset: Integer): TJSONValueM;
 begin
-  Result := ParseJSONValueUTF8(Data, Offset, Length(Data));
+  Result := ParseJSONValue(Data, Offset, Length(Data));
 end;
 {$ENDIF !NEXTGEN}
 
 constructor TJSONObjectM.Create;
 begin
   inherited Create;
-  FMembers := TDBXArrayList.Create;
+  FMembers := TList<TJSONPair>.Create;
 end;
 
 constructor TJSONObjectM.Create(const Pair: TJSONPair);
@@ -1731,7 +1748,7 @@ begin
     FMembers.Add(Pair);
 end;
 
-procedure TJSONObjectM.SetMemberList(AList: TDBXArrayList);
+procedure TJSONObjectM.SetPairs(const AList: TList<TJSONPair>);
 begin
   FMembers.Free;
   FMembers := AList;
@@ -1739,34 +1756,55 @@ end;
 
 function TJSONObjectM.Size: Integer;
 begin
+  Result := GetCount;
+end;
+
+function TJSONObjectM.Get(const Index: Integer): TJSONPair;
+begin
+  Result := Pairs[Index];
+end;
+
+function TJSONObjectM.Get(const Name: string): TJSONPair;
+begin
+  Result := GetPairByName(Name);
+end;
+
+function TJSONObjectM.GetCount: Integer;
+begin
   Result := FMembers.Count;
 end;
 
-function TJSONObjectM.Get(const I: Integer): TJSONPair;
+function TJSONObjectM.GetPair(const I: Integer): TJSONPair;
 begin
-//{$IFDEF DEVELOPERS}
-//  // JSONObjects are unordered pairs, so do not depend on the index
-//  // of a pair.  Here we allow index to be used only in a special case.
-//  Assert((I = 0) and (Size <= 1));
-//{$ENDIF}
-  if (I >= 0) and (I < Size) then
-    Result := TJSONPair(FMembers[I])
+  if (I >= 0) and (I < Count) then
+    Result := FMembers[I]
   else
     Result := nil;
 end;
 
-function TJSONObjectM.Get(const PairName: string): TJSONPair;
+function TJSONObjectM.GetPairByName(const PairName: string): TJSONPair;
 var
   Candidate: TJSONPair;
   I: Integer;
 begin
-  for i := 0 to Size - 1 do
+  for i := 0 to Count - 1 do
   begin
     Candidate := TJSONPair(FMembers[I]);
     if (Candidate.JsonString.Value = PairName) then
       Exit(Candidate);
   end;
   Result := nil;
+end;
+
+function TJSONObjectM.GetValue(const Name: string): TJSONValueM;
+var
+  LPair: TJSONPair;
+begin
+  LPair := GetPairByName(Name);
+  if LPair <> nil then
+    Result := LPair.JSONValue
+  else
+    Result := nil;
 end;
 
 function TJSONObjectM.GetEnumerator: TJSONPairEnumerator;
@@ -1820,9 +1858,14 @@ begin
   Result := Self;
 end;
 
+function TJSONObjectM.FindValue(const APath: string): TJSONValueM;
+begin
+  Result := FindJSONValue(Self, APath);
+end;
+
 procedure TJSONObjectM.AddDescendant(const Descendant: TJSONAncestor);
 begin
-  FMembers.Add(Descendant);
+  FMembers.Add(TJSONPair(Descendant));
 end;
 
 function TJSONObjectM.EstimatedByteSize: Integer;
@@ -1865,7 +1908,7 @@ var
 begin
   Data := TJSONObjectM.Create;
   for I := 0 to FMembers.Count - 1 do
-    Data.AddPair(TJSONPair(Get(I).Clone));
+    Data.AddPair(TJSONPair(Pairs[I].Clone));
   Result := Data;
 end;
 
@@ -1989,7 +2032,7 @@ end;
 class function TJSONObjectM.ParseArray(const Br: TJSONByteReader; const Parent: TJSONAncestor): Integer;
 var
   ValueExpected: Boolean;
-  JsonArray: TJSONArrayM;
+  JsonArray: TJSONArray;
   Pos: Integer;
 begin
   ConsumeWhitespaces(Br);
@@ -1998,7 +2041,7 @@ begin
   if Br.PeekByte <> Ord('[') then
     Exit(-Br.Offset);
   Br.ConsumeByte;
-  JsonArray := TJSONArrayM.Create;
+  JsonArray := TJSONArray.Create;
   Parent.AddDescendant(JsonArray);
   ValueExpected := False;
   while ValueExpected or (Br.PeekByte <> Ord(']')) do
@@ -2089,12 +2132,12 @@ var
   Candidate: TJSONPair;
   I: Integer;
 begin
-  for I := 0 to Size - 1 do
+  for I := 0 to Count - 1 do
   begin
     Candidate := TJSONPair(FMembers[I]);
     if (Candidate.JsonString.Value = PairName) then
     begin
-      FMembers.RemoveAt(i);
+      FMembers.Remove(FMembers[i]);
       Exit(Candidate);
     end;
   end;
@@ -2159,9 +2202,9 @@ begin
         Consume := False;
     end;
   Exponent := False;
-  if Br.PeekByte = Ord('.') then
+  if Br.PeekByte = Ord(JSONFormatSettings.DecimalSeparator) then
   begin
-    Nb.AddChar('.');
+    Nb.AddChar(JSONFormatSettings.DecimalSeparator);
     Br.ConsumeByte;
     if Br.Empty then
       Exit(-Br.Offset);
@@ -2336,8 +2379,21 @@ begin
   end;
 end;
 
+{ TJSONNull }
+
 procedure TJSONNull.AddDescendant(const Descendant: TJSONAncestor);
 begin
+end;
+
+function TJSONNull.AsTValue(ATypeInfo: PTypeInfo; out AValue: TValue): Boolean;
+begin
+  Result := True;
+  case ATypeInfo.Kind of
+    tkString, tkLString, tkUString, TkWString:
+      AValue := '';
+    else
+      Result := Inherited;
+  end;
 end;
 
 function TJSONNull.IsNull: Boolean;
@@ -2364,7 +2420,12 @@ end;
 
 function TJSONNull.ToString: string;
 begin
-  Result := 'null';
+  Result := NULLString;
+end;
+
+function TJSONNull.Value: string;
+begin
+  Result := NULLString;
 end;
 
 function TJSONNull.Clone: TJSONAncestor;
@@ -2372,8 +2433,25 @@ begin
   Result := TJSONNull.Create;
 end;
 
+{ TJSONFalse }
+
 procedure TJSONFalse.AddDescendant(const Descendant: TJSONAncestor);
 begin
+end;
+
+function TJSONFalse.AsTValue(ATypeInfo: PTypeInfo; out AValue: TValue): Boolean;
+begin
+  Result := True;
+  case ATypeInfo.Kind of
+    tkEnumeration:
+      Result := StrToTValue(FalseString, ATypeInfo, AValue);
+    tkInteger, tkInt64, tkFloat:
+      AValue := 0;
+    tkString, tkLString, tkWString, tkUString:
+      AValue := FalseString
+    else
+      Result := Inherited;
+  end;
 end;
 
 function TJSONFalse.EstimatedByteSize: Integer;
@@ -2396,7 +2474,12 @@ end;
 
 function TJSONFalse.ToString: string;
 begin
-  Result := 'false';
+  Result := FalseString;
+end;
+
+function TJSONFalse.Value: string;
+begin
+  Result := FalseString;
 end;
 
 function TJSONFalse.Clone: TJSONAncestor;
@@ -2404,33 +2487,35 @@ begin
   Result := TJSONFalse.Create;
 end;
 
-constructor TJSONArrayM.Create;
+{ TJSONArray }
+
+constructor TJSONArray.Create;
 begin
   inherited Create;
-  FElements := TDBXArrayList.Create;
+  FElements := TList<TJSONValueM>.Create;
 end;
 
-constructor TJSONArrayM.Create(const FirstElem: TJSONValueM);
+constructor TJSONArray.Create(const FirstElem: TJSONValueM);
 begin
   Create;
   AddElement(FirstElem);
 end;
 
-constructor TJSONArrayM.Create(const FirstElem: TJSONValueM; const SecondElem: TJSONValueM);
+constructor TJSONArray.Create(const FirstElem: TJSONValueM; const SecondElem: TJSONValueM);
 begin
   Create;
   AddElement(FirstElem);
   AddElement(SecondElem);
 end;
 
-constructor TJSONArrayM.Create(const FirstElem: string; const SecondElem: string);
+constructor TJSONArray.Create(const FirstElem: string; const SecondElem: string);
 begin
   Create;
   AddElement(TJSONString.Create(FirstElem));
   AddElement(TJSONString.Create(SecondElem));
 end;
 
-destructor TJSONArrayM.Destroy;
+destructor TJSONArray.Destroy;
 var
   Element: TJSONAncestor;
   I: Integer;
@@ -2448,72 +2533,87 @@ begin
   inherited Destroy;
 end;
 
-procedure TJSONArrayM.SetElements(AList: TDBXArrayList);
+procedure TJSONArray.SetElements(const AList: TList<TJSONValueM>);
 begin
   FElements.Free;
   FElements := AList;
 end;
 
-function TJSONArrayM.Size: Integer;
+function TJSONArray.Size: Integer;
+begin
+  Result := GetCount;
+end;
+
+function TJSONArray.Get(const Index: Integer): TJSONValueM;
+begin
+  Result := Items[Index];
+end;
+
+function TJSONArray.GetCount: Integer;
 begin
   if (FElements = nil) or (FElements.Count = 0) then
     Exit(0);
   Result := FElements.Count;
 end;
 
-function TJSONArrayM.Get(const Index: Integer): TJSONValueM;
+function TJSONArray.GetValue(const Index: Integer): TJSONValueM;
 begin
-  if (Index < 0) or (Index >= Size) then
+  if (Index < 0) or (Index >= Count) then
     Exit(nil);
   Result := TJSONValueM(FElements[Index]);
 end;
 
-procedure TJSONArrayM.AddDescendant(const Descendant: TJSONAncestor);
+function TJSONArray.FindValue(const APath: string): TJSONValueM;
 begin
-  FElements.Add(Descendant);
+  Result := FindJSONValue(Self, APath);
 end;
 
-function TJSONArrayM.Pop: TJSONValueM;
+procedure TJSONArray.AddDescendant(const Descendant: TJSONAncestor);
+begin
+  FElements.Add(TJSONValueM(Descendant));
+end;
+
+function TJSONArray.Pop: TJSONValueM;
 var
   Value: TJSONValueM;
 begin
   Value := TJSONValueM(FElements[0]);
-  FElements.RemoveAt(0);
+  FElements.Remove(FElements[0]);
   Result := Value;
 end;
 
-function TJSONArrayM.Remove(Index: Integer): TJSONValueM;
+function TJSONArray.Remove(Index: Integer): TJSONValueM;
 begin
-  Result := Get(Index);
-  if (Index >= 0) and (Index < Size) then
-    FElements.RemoveAt(Index);
+  Result := GetValue(Index);
+  if (Index >= 0) and (Index < Count) then
+     FElements.Remove(FElements[Index]);
 end;
 
-procedure TJSONArrayM.AddElement(const Element: TJSONValueM);
+procedure TJSONArray.AddElement(const Element: TJSONValueM);
 begin
   if Element <> nil then
     AddDescendant(Element);
 end;
 
-function TJSONArrayM.Add(const Element: string): TJSONArrayM;
+function TJSONArray.Add(const Element: string): TJSONArray;
 begin
   AddElement(TJSONString.Create(Element));
   Result := self;
 end;
 
-function TJSONArrayM.Add(const Element: Integer): TJSONArrayM;
+function TJSONArray.Add(const Element: Integer): TJSONArray;
 begin
   AddElement(TJSONNumber.Create(Element));
   Result := self;
 end;
 
-function TJSONArrayM.Add(const Element: Double): TJSONArrayM;
+function TJSONArray.Add(const Element: Double): TJSONArray;
 begin
   AddElement(TJSONNumber.Create(Element));
   Result := self;
 end;
 
-function TJSONArrayM.Add(const Element: Boolean): TJSONArrayM;
+function TJSONArray.Add(const Element: Boolean): TJSONArray;
 begin
   if Element then
     AddElement(TJSONTrue.Create)
@@ -2522,7 +2622,7 @@ begin
   Result := self;
 end;
 
-function TJSONArrayM.Add(const Element: TJSONObjectM): TJSONArrayM;
+function TJSONArray.Add(const Element: TJSONObjectM): TJSONArray;
 begin
   if Element <> nil then
     AddElement(Element)
@@ -2531,13 +2631,13 @@ begin
   Result := self;
 end;
 
-function TJSONArrayM.Add(const Element: TJSONArrayM): TJSONArrayM;
+function TJSONArray.Add(const Element: TJSONArray): TJSONArray;
 begin
   AddElement(Element);
   Result := self;
 end;
 
-function TJSONArrayM.EstimatedByteSize: Integer;
+function TJSONArray.EstimatedByteSize: Integer;
 var
   Size: Integer;
   I: Integer;
@@ -2550,7 +2650,7 @@ begin
   Result := Size;
 end;
 
-function TJSONArrayM.ToBytes(const Data: TArray<Byte>; const Pos: Integer): Integer;
+function TJSONArray.ToBytes(const Data: TArray<Byte>; const Pos: Integer): Integer;
 var
   Offset: Integer;
   Size: Integer;
@@ -2570,7 +2670,7 @@ begin
   Result := Offset;
 end;
 
-function TJSONArrayM.ToString: string;
+function TJSONArray.ToString: string;
 var
   Buf: TStringBuilder;
   Size: Integer;
@@ -2594,60 +2694,60 @@ begin
   end;
 end;
 
-function TJSONArrayM.Clone: TJSONAncestor;
+function TJSONArray.Clone: TJSONAncestor;
 var
-  Data: TJSONArrayM;
+  Data: TJSONArray;
   I: Integer;
 begin
-  Data := TJSONArrayM.Create;
-  for I := 0 to Size - 1 do
-    Data.AddDescendant(Get(I).Clone);
+  Data := TJSONArray.Create;
+  for I := 0 to Count - 1 do
+    Data.AddDescendant(Items[I].Clone);
   Result := Data;
 end;
 
-function TJSONArrayM.GetEnumerator: TJSONArrayMEnumerator;
+function TJSONArray.GetEnumerator: TJSONArrayEnumerator;
 begin
-  Result := TJSONArrayMEnumerator.Create(Self);
+  Result := TJSONArrayEnumerator.Create(Self);
 end;
 
-{ TDBXArrayListEnumerator }
+{ TList<TObject>Enumerator }
 
-constructor TJSONPairEnumerator.Create(ADBXArrayList: TDBXArrayList);
+constructor TJSONPairEnumerator.Create(const AList: TList<TJSONPair>);
 begin
   inherited Create;
   FIndex := -1;
-  FDBXArrayList := ADBXArrayList;
+  FList := AList;
 end;
 
 function TJSONPairEnumerator.GetCurrent: TJSONPair;
 begin
-  Result := TJSONPair(FDBXArrayList[FIndex]);
+  Result := TJSONPair(FList[FIndex]);
 end;
 
 function TJSONPairEnumerator.MoveNext: Boolean;
 begin
-  Result := FIndex < FDBXArrayList.Count - 1;
+  Result := FIndex < FList.Count - 1;
   if Result then
     Inc(FIndex);
 end;
 
-{ TJSONArrayMEnumerator }
+{ TJSONArrayEnumerator }
 
-constructor TJSONArrayMEnumerator.Create(AArray: TJSONArrayM);
+constructor TJSONArrayEnumerator.Create(const AArray: TJSONArray);
 begin
   inherited Create;
   FIndex := -1;
   FArray := AArray;
 end;
 
-function TJSONArrayMEnumerator.GetCurrent: TJSONValueM;
+function TJSONArrayEnumerator.GetCurrent: TJSONValueM;
 begin
-  Result := FArray.Get(FIndex);
+  Result := FArray.GetValue(FIndex);
 end;
 
-function TJSONArrayMEnumerator.MoveNext: Boolean;
+function TJSONArrayEnumerator.MoveNext: Boolean;
 begin
-  Result := FIndex < FArray.Size - 1;
+  Result := FIndex < FArray.Count - 1;
   if Result then
     Inc(FIndex);
 end;
@@ -2656,7 +2756,7 @@ end;
 
                               TJSONExtended
 
-  Métodos implementados por Leandro Medeiros em 10/04/2012.
+          MÃ©todos implementados por Leandro Medeiros em 16/07/2014.
 
 *******************************************************************************}
 
@@ -2713,23 +2813,23 @@ begin
   Result := TJSONExtended(Self.AddPair(Str, DateTimeToStr(Val)));
 end;
 
-//==| Função - Possui Valor |===================================================
+//==| FunÃ§Ã£o - Possui Valor |===================================================
 function TJSONExtended.IsSet(const APropertyName: string): Boolean;
 begin
   Result := Assigned(Self.Get(APropertyName));
 end;
 
-//==| Função - Obter String |===================================================
+//==| FunÃ§Ã£o - Obter String |===================================================
 function TJSONExtended.GetStr(const APropertyName: string;
   const ADefaultValue: string = ''): string;
 begin
   if Assigned(Self.Get(APropertyName)) then
-    Result := Trim(UnquotedStr(Self.Get(APropertyName).JsonValue.ToString))
+    Result := System.SysUtils.Trim(IdGlobalProtocols.UnquotedStr(Self.Get(APropertyName).JsonValue.ToString))
   else
     Result := ADefaultValue;
 end;
 
-//==| Função - Obter Inteiro |==================================================
+//==| FunÃ§Ã£o - Obter Inteiro |==================================================
 function TJSONExtended.GetInt(const APropertyName: string;
   const ADefaultValue: integer = 0): integer;
 var
@@ -2740,7 +2840,7 @@ begin
   else                    Result := StrToInt(sAux);
 end;
 
-//==| Função - Obter Ponto Flutuante |==========================================
+//==| FunÃ§Ã£o - Obter Ponto Flutuante |==========================================
 function TJSONExtended.GetFloat(const APropertyName: string;
   const ADefaultValue: real = 0): real;
 var
@@ -2751,7 +2851,7 @@ begin
   else                    Result := StrToFloat(sAux);
 end;
 
-//==| Função - Obter Booleano |=================================================
+//==| FunÃ§Ã£o - Obter Booleano |=================================================
 function TJSONExtended.GetBool(const APropertyName: string;
   const ADefaultValue: Boolean = false): Boolean;
 var
@@ -2762,14 +2862,14 @@ begin
   else                    Result := StrToBool(sAux);
 end;
 
-//==| Função - Obter Data/Hora |================================================
+//==| FunÃ§Ã£o - Obter Data/Hora |================================================
 function TJSONExtended.GetDtTime(const APropertyName: string;
   const ADefaultValue: TDateTime = 0): TDateTime;
 var
   sAux       : string;
   Formatting : TFormatSettings;
 begin
-  Formatting := TFormatSettings.Create('pt-br');                                //Pode Ser 1046 também
+  Formatting := TFormatSettings.Create('pt-br');                                //Pode Ser 1046 tambÃ©m
 
   sAux := Self.GetStr(APropertyName);
   if sAux <> EmptyStr then        Result := StrToDateTime(sAux, Formatting)
@@ -2777,20 +2877,23 @@ begin
   else                            Result := Now;
 end;
 
-//==| Função - Obter Data |=====================================================
+//==| FunÃ§Ã£o - Obter Data |=====================================================
 function TJSONExtended.GetDate(const APropertyName: string;
   const ADefaultValue: TDate = 0): TDate;
 var
   sAux : string;
   Formatting : TFormatSettings;
 begin
-  Formatting := TFormatSettings.Create('pt-br');                                //Pode Ser 1046 também
+  Formatting := TFormatSettings.Create('pt-br');                                //Pode Ser 1046 tambÃ©m
 
   sAux := Self.GetStr(APropertyName);
   if sAux <> EmptyStr then        Result := StrToDate(sAux, Formatting)
   else if ADefaultValue <> 0 then Result := ADefaultValue
   else                            Result := Date();
 end;
-//==============================================================| 10/04/2012 |==
+//==============================================================| 16/07/2014 |==
 
+initialization
+  JSONFormatSettings := TFormatSettings.Create;
+  JSONFormatSettings.DecimalSeparator := '.';
 end.

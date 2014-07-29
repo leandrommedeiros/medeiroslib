@@ -10,7 +10,7 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  Classes, ComCtrls, DBXJSON, Lib.JSON.Doc;
+  Classes, ComCtrls, System.JSON, Lib.JSON.Doc;
 
 { Classes }
 type
