@@ -131,21 +131,21 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="xmlrtl.dcp"/>
-        <DCCReference Include="rtl.dcp"/>
-        <DCCReference Include="vcl.dcp"/>
         <DCCReference Include="DbxCommonDriver.dcp"/>
-        <DCCReference Include="dbrtl.dcp"/>
         <DCCReference Include="DbxClientDriver.dcp"/>
         <DCCReference Include="CustomIPTransport.dcp"/>
-        <DCCReference Include="dbexpress.dcp"/>
-        <DCCReference Include="dsnap.dcp"/>
         <DCCReference Include="IndySystem.dcp"/>
         <DCCReference Include="IndyProtocols.dcp"/>
         <DCCReference Include="IndyCore.dcp"/>
         <DCCReference Include="IndyIPClient.dcp"/>
         <DCCReference Include="IndyIPCommon.dcp"/>
         <DCCReference Include="CloudService.dcp"/>
+        <DCCReference Include="xmlrtl.dcp"/>
+        <DCCReference Include="rtl.dcp"/>
+        <DCCReference Include="vcl.dcp"/>
+        <DCCReference Include="dbrtl.dcp"/>
+        <DCCReference Include="dbexpress.dcp"/>
+        <DCCReference Include="dsnap.dcp"/>
         <DCCReference Include="..\Source\ComponentsRegister.pas"/>
         <DCCReference Include="..\Source\Lib.AwsS3.pas"/>
         <DCCReference Include="..\Source\Lib.JSON.Doc.pas"/>

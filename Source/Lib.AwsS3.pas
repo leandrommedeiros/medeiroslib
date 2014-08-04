@@ -18,9 +18,9 @@ const
   SMD_PATH       = 'originalfilepath';
   SMD_FROM       = 'uploadfrom';
   SMD_SIZE       = 'Content-Length';
+  SMD_CHECKSUM   = 'Content-MD5';
   SMD_CREATED_BY = 'createdby';
   AMAZON_INDEX   = 0;
-  BUCKET_PREFIX  = 'origem-%d';
   ERROR_UPLOADING_FILE    = 'Ocorreu um erro ao enviar arquivo "%s" para bucket "%s": "%s"';
   ERROR_DOWNLOADING_FILE  = 'Ocorreu um erro ao baixar arquivo "%s" para bucket "%s": "%s"';
 
@@ -56,7 +56,8 @@ type
     function Upload(ASourcePath: string; const ATargetDir, AFileName: String;
       const ADelAfterTransfer: Boolean = False; ATries: integer = 3): Boolean;
     function MultipartUpload(ASourcePath: string; const ATargetDir, AFileName: String;
-      APackageSize: integer = FIVE_MEGABYTES; const ADelAfterTransfer: Boolean = False): Boolean;
+      APackageSize: integer = FIVE_MEGABYTES; const ADelAfterTransfer: Boolean = False;
+      const ATries: integer = 3): Boolean;
     function Download(ASourcePath, ATargetPath, AFileName: String): Boolean;
     function ListBuckets: TStrings;
 
@@ -79,7 +80,8 @@ implementation
 { Bibliotecas para Implementação }
 uses
   Lib.StrUtils, Lib.Win, Lib.Utils, Vcl.Dialogs, IPPeerClient,
-  Datasnap.DBClient, System.Generics.Collections, Xml.XMLIntf, Xml.XMLDoc;
+  Datasnap.DBClient, System.Generics.Collections, Xml.XMLIntf, Xml.XMLDoc,
+  Winapi.Windows, Winapi.ActiveX;
 
 
 {*******************************************************************************
@@ -186,11 +188,12 @@ var
 begin
   Result := 0;
 
-  CloudResponse := TCloudResponseInfo.Create;                                   //instancio a classe responsável por receber o resultado de uma transferência
-
   try
-    sFileName := Self.ValidateS3Path(ATargetDir)                                //Valido o nome de arquivo de destino segundo regras do S3
-               + Self.ValidateFileName(AFileName);
+    CloudResponse := TCloudResponseInfo.Create;                                 //instancio a classe responsável por receber o resultado de uma transferência
+    sMetadata     := TStringList.Create;
+    sProperties   := TStringList.Create;
+    sFileName     := Self.ValidateS3Path(ATargetDir)                            //Valido o nome de arquivo de destino segundo regras do S3
+                   + Self.ValidateFileName(AFileName);
 
     Self.StorageService.GetObjectProperties(Self.FBucketName,
                                             sFileName,
@@ -265,7 +268,7 @@ function TS3Connection.Upload(ASourcePath: string; const ATargetDir,
 { Variáveis }
 var
   sTargetFile   : string;
-  slMetadata    : TStrings;
+  slMetadata    : TStringList;
   FileContent   : TBytes;
   CloudResponse : TCloudResponseInfo;
 
@@ -356,19 +359,31 @@ end;
 //==| Função - Upload Particionado |============================================
 function TS3Connection.MultipartUpload(ASourcePath: string; const ATargetDir,
   AFileName: String; APackageSize: integer = FIVE_MEGABYTES;
-  const ADelAfterTransfer: Boolean = False): Boolean;
+  const ADelAfterTransfer: Boolean = False; const ATries: integer = 3): Boolean;
 var
   slMetadata,
   slHeaders     : TStrings;
+  iTries,
   iPartNo,
   iTotalParts   : integer;
   sUploadID,
   sBufferMD5,
   sTargetFile   : string;
+  lgUploaded    : Boolean;
   Buffer        : TBytes;
   CloudResponse : TCloudResponseInfo;
   UploadedPart  : TAmazonMultipartPart;
   PartsList     : System.Generics.Collections.TList<TAmazonMultipartPart>;
+
+procedure FinishConnection;
+begin
+  if Assigned(Self.OnMultipartWorkEnd) then Self.OnMultipartWorkEnd;
+  Buffer := nil;                                                                //Limpo a referência para o arquivo em Stream, permitindo que a memória seja liberada
+  FreeAndNil(CloudResponse);                                                    //Destruo o objeto com o retorno da Cloud,
+  FreeAndNil(slMetadata);                                                       //a List com os metadados
+  FreeAndNil(slHeaders);                                                        //e também a List com os cabeçalhos
+end;
+
 begin
   Result := False;                                                              //Assumo falha
 
@@ -402,6 +417,8 @@ begin
                        div APackageSize) + 1;
     end;
 
+    CoInitialize(nil);
+
     sUploadID := Self.StorageService.InitiateMultipartUpload(Self.FBucketName,
                                                              sTargetFile,
                                                              slMetadata,
@@ -410,7 +427,8 @@ begin
                                                              CloudResponse);
 
     try                                                                         //Tento
-      Self.OnMultipartWorkBegin(iTotalParts);
+      if Assigned(Self.OnMultipartWorkBegin) then
+        Self.OnMultipartWorkBegin(iTotalParts);
 
       for iPartNo := 1 to iTotalParts do
       begin
@@ -418,20 +436,38 @@ begin
         begin
           if Length(Buffer) > 0 then
           begin
-            sBufferMD5 := Lib.StrUtils.MD5(Buffer);
+            lgUploaded := False;
+            iTries     := ATries;
+            sBufferMD5 := '"' + Lib.StrUtils.MD5(Buffer) + '"';
 
-            while not Self.StorageService.UploadPart(Self.FBucketName,
-                                                     sTargetFile,
-                                                     sUploadID,
-                                                     iPartNo,
-                                                     Buffer,
-                                                     UploadedPart,
-                                                     sBufferMD5) do
-              Sleep(100);
+            while not lgUploaded and Bool(iTries) do
+            begin
+              if Self.StorageService.UploadPart(Self.FBucketName,
+                                                sTargetFile,
+                                                sUploadID,
+                                                iPartNo,
+                                                Buffer,
+                                                UploadedPart) and
+                (UploadedPart.ETag = sBufferMD5) then
+              begin
+                Buffer     := nil;
+                lgUploaded := True;
+                PartsList.Add(UploadedPart);
+                if Assigned(Self.OnMultipartWork) then
+                  Self.OnMultipartWork(iPartNo, APackageSize);
+              end
 
-            Buffer := nil;
-            PartsList.Add(UploadedPart);
-            Self.OnMultipartWork(iPartNo, APackageSize);
+              else if Bool(iTries) then
+              begin
+                Dec(iTries, 1);
+                Sleep(1000);
+              end
+
+              else begin
+                Self.StorageService.AbortMultipartUpload(Self.FBucketName, sTargetFile, sUploadID);
+                FinishConnection;
+              end;
+            end;
           end;
         end;
       end;
@@ -453,14 +489,11 @@ begin
         Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                              //gravo um log tentando obter a mensagem do erro
                             [AFileName, Self.FBucketName, e.Message]));
         Self.StorageService.AbortMultipartUpload(Self.FBucketName, sTargetFile, sUploadID);
+        FinishConnection;
       end;
     end;
   finally                                                                       //Ao final sempre
-    Self.OnMultipartWorkEnd;
-    Buffer := nil;                                                              //Limpo a referência para o arquivo em Stream, permitindo que a memória seja liberada
-    FreeAndNil(CloudResponse);                                                  //Destruo o objeto com o retorno da Cloud,
-    FreeAndNil(slMetadata);                                                     //a List com os metadados
-    FreeAndNil(slHeaders);                                                      //e também a List com os cabeçalhos
+    FinishConnection;
   end;
 end;
 

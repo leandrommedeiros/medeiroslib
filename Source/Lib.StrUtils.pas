@@ -397,9 +397,9 @@ begin
   with TIdHashMessageDigest5.Create do
     try
       {$IFDEF VER150}
-      Result := AnsiUpperCase(AsHex(HashValue(AContent)));
+      Result := AnsiLowerCase(AsHex(HashValue(AContent)));
       {$ELSE}
-      Result := AnsiUpperCase(HashStringAsHex(AContent));
+      Result := AnsiLowerCase(HashStringAsHex(AContent));
       {$ENDIF}
     finally
       Free;
@@ -421,7 +421,6 @@ begin
 
       Result := MD5(vStream);
     finally
-      vStream.SaveToFile('D:\Test.part');
       vStream.Free;
     end;
 end;
@@ -434,9 +433,9 @@ begin
   with TIdHashMessageDigest5.Create do
     try
       {$IFDEF VER150}
-      Result := AnsiUpperCase(AsHex(HashValue(AContent)));
+      Result := AnsiLowerCase(AsHex(HashValue(AContent)));
       {$ELSE}
-      Result := AnsiUpperCase(HashStreamAsHex(AContent));
+      Result := AnsiLowerCase(HashStreamAsHex(AContent));
       {$ENDIF}
     finally
       Free;
