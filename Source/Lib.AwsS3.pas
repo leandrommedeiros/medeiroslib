@@ -21,16 +21,17 @@ const
   SMD_CHECKSUM   = 'Content-MD5';
   SMD_CREATED_BY = 'createdby';
   AMAZON_INDEX   = 0;
+  ERROR_GETTING_FILE_SIZE = 'Erro ao calcular tamanho do arquivo "%s" da bucket "%s": "%s"';
   ERROR_UPLOADING_FILE    = 'Ocorreu um erro ao enviar arquivo "%s" para bucket "%s": "%s"';
-  ERROR_DOWNLOADING_FILE  = 'Ocorreu um erro ao baixar arquivo "%s" para bucket "%s": "%s"';
+  ERROR_DOWNLOADING_FILE  = 'Ocorreu um erro ao baixar arquivo "%s" da bucket "%s": "%s"';
 
 
 { Classes }
 type
   //Eventos
-  TS3MultipartOnWorkBegin = procedure(const APartsCount: integer) of Object;
-  TS3MultipartOnWork      = procedure(const ACurrentPart, APackageSize: integer) of Object;
-  TS3MultipartOnWorkEnd   = procedure of Object;
+  TS3MultipartOnWorkBegin = procedure(const APartsCount: integer) of object;
+  TS3MultipartOnWork      = procedure(const ACurrentPart, APackageSize: integer) of object;
+  TS3MultipartOnWorkEnd   = procedure of object;
 
   //Conexão S3
   TS3Connection = class(TAmazonConnectionInfo)
@@ -52,7 +53,7 @@ type
     function EstablishConnection: Boolean; overload;
     function EstablishConnection(const AccountName, AccountKey,
       ABucketName: string): Boolean; overload;
-    function GetFileSize(const ATargetDir, AFileName: string): Integer;
+    function GetFileSize(const APath, AFileName: string): Integer;
     function Upload(ASourcePath: string; const ATargetDir, AFileName: String;
       const ADelAfterTransfer: Boolean = False; ATries: integer = 3): Boolean;
     function MultipartUpload(ASourcePath: string; const ATargetDir, AFileName: String;
@@ -179,7 +180,7 @@ begin
 end;
 
 //==| Função - Obter tamanho do Arquivo |=======================================
-function TS3Connection.GetFileSize(const ATargetDir, AFileName: string): Integer;
+function TS3Connection.GetFileSize(const APath, AFileName: string): Integer;
 var
   sMetadata,
   sProperties   : TStrings;
@@ -192,24 +193,27 @@ begin
     CloudResponse := TCloudResponseInfo.Create;                                 //instancio a classe responsável por receber o resultado de uma transferência
     sMetadata     := TStringList.Create;
     sProperties   := TStringList.Create;
-    sFileName     := Self.ValidateS3Path(ATargetDir)                            //Valido o nome de arquivo de destino segundo regras do S3
+    sFileName     := Self.ValidateS3Path(APath)                                 //Valido o nome de arquivo de destino segundo regras do S3
                    + Self.ValidateFileName(AFileName);
 
-    Self.StorageService.GetObjectProperties(Self.FBucketName,
-                                            sFileName,
-                                            sProperties,
-                                            sMetadata,
-                                            CloudResponse);
+    if Self.StorageService.GetObjectProperties(Self.FBucketName,
+                                               sFileName,
+                                               sProperties,
+                                               sMetadata,
+                                               CloudResponse) then
+      case CloudResponse.StatusCode of                                          //Se o código de situação
+        200, 201: begin                                                         //for 200 ou 201
+           TryStrToInt(Lib.StrUtils.ReturnValidChars(sProperties[7], sNumbers), Result);
+        end;
 
-    case CloudResponse.StatusCode of                                            //Se o código de situação
-      200, 201: begin                                                           //for 200 ou 201
-         TryStrToInt(Lib.StrUtils.ReturnValidChars(sProperties[7], sNumbers), Result);
+        else
+          Lib.Files.Log(Format(ERROR_GETTING_FILE_SIZE,                         //gravo um log tentando obter a mensagem do erro
+                               [AFileName, Self.FBucketName, CloudResponse.StatusMessage]));
       end;
-    end;
   except                                                                        //Se ocorrer um erro inesperado no processo
     on e: Exception do
-      Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                                //gravo um log tentando obter a mensagem do erro
-                          [AFileName, Self.FBucketName, e.Message]));
+      Lib.Files.Log(Format(ERROR_GETTING_FILE_SIZE,                             //gravo um log tentando obter a mensagem do erro
+                           [AFileName, Self.FBucketName, e.Message]));
   end;
 end;
 
