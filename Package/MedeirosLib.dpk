@@ -71,6 +71,7 @@ contains
   Lib.Files in '..\Source\Lib.Files.pas',
   Lib.FTP in '..\Source\Lib.FTP.pas',
   Lib.StrUtils in '..\Source\Lib.StrUtils.pas',
+  Lib.Thread.Base in '..\Source\Lib.Thread.Base.pas',
   Lib.Utils in '..\Source\Lib.Utils.pas',
   Lib.Utils.BrowseFolder in '..\Source\Lib.Utils.BrowseFolder.pas',
   Lib.Utils.StreamFile in '..\Source\Lib.Utils.StreamFile.pas',
