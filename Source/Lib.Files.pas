@@ -1,6 +1,6 @@
 {===============================================================================
 
-                   BIBLIOTECA - ARQUIVOS E DIRETÓRIOS
+                 BIBLIOTECA - UTILIDADES PARA SISTEMA DE ARQUIVOS
 
 ==========================================================| Versão 12.11.00 |==}
 
@@ -56,6 +56,8 @@ type
     const AInitialByte: integer; AByteCount: integer): Boolean;
   function  SaveBytesToFile(const ABuffer: TBytes; const AFileName: string): Boolean;
   function  ExtractLastFolderName(AFileName: string): string;
+  function  ObjectSaveToFile(var AObject: TObject; const AFileName: string): Boolean;
+  function  ObjectLoadFromFile(var AObject: TObject; const AFileName: string): Boolean;
 
 implementation
 
@@ -656,6 +658,18 @@ begin
       idx    := 0;
     end;
   end;
+end;
+
+//==| Salvar Objeto em Disco |==================================================
+function ObjectSaveToFile(var AObject: TObject; const AFileName: string): Boolean;
+begin
+//  WriteComponentResFile();
+end;
+
+//==| Carregar Objeto do Disco |==================================================
+function ObjectLoadFromFile(var AObject: TObject; const AFileName: string): Boolean;
+begin
+//
 end;
 //==============================================================================
 
