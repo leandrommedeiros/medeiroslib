@@ -25,6 +25,7 @@ type
 
 { Protótipos }
   function  BytesToMB(iBytes: integer): Real;
+  function  CreateTempDir(ASufix: string): string;
   procedure PriorFolder(var sDir: string; iRepeat: integer = 1);
   function  ParentFolder(sDir: string; iRepeat: integer = 1): string;
   function  ValidateDir(var ADir: string; ACreate: Boolean = True): Boolean;
@@ -73,6 +74,20 @@ uses
 function BytesToMB(iBytes: integer): Real;
 begin
   Result := iBytes / BYTES_TO_MEGA;
+end;
+
+//==| Procedimento - Criar Diretório Temporário |===============================
+function CreateTempDir(ASufix: string): string;
+begin
+  Lib.Files.ValidateFileName(ASufix);
+
+  Result := GetEnvironmentVariable('TEMP');
+
+  Lib.Files.ValidateDir(Result);
+
+  Result := Result + ASufix;
+
+  if not Lib.Files.ValidateDir(Result) then Result := EmptyStr;
 end;
 
 {==| Procedimento - Pasta Anterior |============================================
