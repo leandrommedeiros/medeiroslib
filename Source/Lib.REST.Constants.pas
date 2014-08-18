@@ -10,20 +10,19 @@ interface
 
 const
 
-
-{*******************************************************************************
-
-                                    GERAL
-
-*******************************************************************************}
-  REST_ERROR_INVALID_SESSION = 1;
-
-
 {*******************************************************************************
 
                                     LOGS
 
 *******************************************************************************}
+
+  WS_EXEC_LOG = 'Requisição ao Web Service' + #13+#10
+              + 'Host: "%s".'   + #13+#10
+              + 'Porta: "%s".'  + #13+#10
+              + 'Classe: "%s".' + #13+#10
+              + 'Método: "%s".' + #13+#10
+              + 'Parâmetros (JSON): %s.'    + #13+#10
+              + 'Retorno: %s.';
 
   LOG_GET_STUDY_LIST = 'Ocorreu um erro ao tentar listar os estudos para gera??o, com mensagem:' + #13 + #10;
   LOG_ONRAD_INSERT_FAIL = 'N?o foi poss?vel criar um registro para o estudo no ONRAD. Motivo desconhecido. STUDYUID: ';
@@ -91,7 +90,33 @@ const
 //--| Usuário |-----------------------------------------------------------------
   REST_METHOD_USER_LOGIN = 'Login';
 
+{*******************************************************************************
 
+                                CÓDIGOS DE ERROS
+
+*******************************************************************************}
+
+// Classe - Método - Erro
+
+  //Study (8) - Insert (4)
+  ERROR_COD_INVALID_ORIGIN   = '841';
+  ERROR_TXT_INVALID_ORIGIN   = 'id Origem inválido/não informado.';
+
+  ERROR_COD_INVALID_MODALITY = '842';
+  ERROR_TXT_INVALID_MODALITY = 'código/id modalidade não defindo.';
+
+  ERROR_COD_INVALID_PATIENT  = '843';
+  ERROR_TXT_INVALID_PATIENT  = 'Dados do paciente não informado(s)/inválido(s).';
+
+  ERROR_COD_INVALID_STUDYUID = '844';
+  ERROR_TXT_INVALID_STUDYUID = 'StudyUID ''%s'' fornecido já está associado à outro estudo.';
+
+  ERROR_COD_INVALID_ACCESSION_NUMBER = '845';
+  ERROR_TXT_INVALID_ACCESSION_NUMBER = 'Accession Number ''%s'' fornecido já está associado à outro estudo.';
+
+  //User (10) - IsValidUser (2)
+  ERROR_COD_INVALID_SESSION = '1021';
+  ERROR_TXT_INVALID_SESSION = 'Sessão inválida/expirada.';
 //==============================================================================
 
 implementation

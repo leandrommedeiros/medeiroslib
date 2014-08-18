@@ -27,7 +27,7 @@ type
     procedure Clear;
 
     property Values[const AParamName: string]: string read GetValue write SetValue;
-//    property Strings[Index: Integer]: string read GetString write PutString; default;
+    property Strings[Index: Integer]: string read GetString write PutString; default;
   protected
     FParameters: TStringList;
   end;

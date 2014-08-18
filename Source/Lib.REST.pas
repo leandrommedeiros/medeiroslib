@@ -12,16 +12,6 @@ interface
 uses
   System.Classes, IdHTTP, Lib.REST.Parameters, Lib.JSON.Extended;
 
-{ Constantes }
-const
-  WS_EXEC_LOG = 'Requisição ao Web Service' + #13+#10
-              + 'Host: "%s".'   + #13+#10
-              + 'Porta: "%s".'  + #13+#10
-              + 'Classe: "%s".' + #13+#10
-              + 'Método: "%s".' + #13+#10
-              + 'Parâmetros (JSON): %s.'    + #13+#10
-              + 'Retorno: %s.';
-
 { Classes }
 type
   TONRADSession = record
@@ -57,6 +47,8 @@ type
     constructor Create(AOwner: TComponent); virtual;
     destructor  Destroy; override;
     function Login: Boolean;
+    function GetLastError: String;
+    function GetLastErrorCode: String;
     function Execute(const AClass, AMethod: string; ATries: integer = 3;
       const ExecutionLog: Boolean = True): Boolean;
     property SessionData : TONRADSession read FSessionData;
@@ -216,6 +208,18 @@ begin
   end;
 end;
 
+//==| Função - Obter Último Erro (Texto) |======================================
+function TRESTConnection.GetLastError: String;
+begin
+  Result := Self.MethodResult.GetStr('error');
+end;
+
+//==| Função - Obter Último Erro (Texto) |======================================
+function TRESTConnection.GetLastErrorCode: String;
+begin
+  Result := Self.MethodResult.GetStr('errorCode');
+end;
+
 //==| Função - Executar |=======================================================
 function TRESTConnection.Execute(const AClass, AMethod: string;
   ATries: integer = 3; const ExecutionLog: Boolean = True): Boolean;
@@ -249,7 +253,7 @@ begin
       end;
     end;
 
-    if Self.MethodResult.GetStr('error') = JSON_FALSE then
+    if Self.GetLastError = JSON_FALSE then
     begin
       Result := True;
 
@@ -258,9 +262,9 @@ begin
     end
 
     else begin
-      Lib.Files.Log(Self.MethodResult.GetStr('error'));
+      Lib.Files.Log(Self.GetLastError);
 
-      if (Self.MethodResult.GetInt('errorId') = REST_ERROR_INVALID_SESSION) and
+      if (Self.GetLastErrorCode = ERROR_COD_INVALID_ORIGIN) and
          (Self.Login) then
       begin
         Result := Self.Execute(AClass, AMethod);
