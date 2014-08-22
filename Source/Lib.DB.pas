@@ -24,26 +24,26 @@ type
   TDBServerType = (stMySQL, stFirebird);
 
   TSQLConnectionM = class(TSQLConnection)
-  private
-    SQLDsDynamic : TSQLDataSet;
-    DspDynamic   : TDataSetProvider;
+  protected
+    FSQLDataSet      : TSQLDataSet;
+    FDataSetProvider : TDataSetProvider;
 
     function ApplyParamValues(Args: Variant): Boolean;
   public
-    CdsDynamic   : TClientDataSet;
+    destructor Destroy; override;
 
     function ExecuteQuery(AQuery: string; const Args: array of Variant): Boolean; overload;
     function ExecuteQuery(AQuery: string): Boolean; overload;
-
     function ExecuteQuery(var ACds: TClientDataSet; AQuery: string): Boolean; overload;
+
     function ExecuteQuery(var ACds: TClientDataSet; AQuery: string;
       const Args: array of Variant): Boolean; overload;
-
-    destructor Destroy; override;
+  published
+    CdsDynamic : TClientDataSet;
   end;
 
-{ Protótipos }
-  function  QueryUpperCase(S: string): string; overload;
+{ Protótipos - Funções e Procedimentos }
+  function  QueryUpperCase(S: string): string;
   function  sParam(S: String): string;
 
   function  BuildClause(var CDS_Origem: TClientDataSet; sFieldOri,
@@ -74,7 +74,7 @@ type
   function  NewMySQLConn(const AHost: string; const APort: integer;
     const ADBName, AUser, APasswd: string): TSQLConnectionM;
 
-{ Protótipos - Delphi 7 }
+{ Protótipos - Apenas para Delphi 7 }
   {$IFDEF VER150}
   function  ExecuteQuery(var AConnection: TSQLConnection; var ACds: TClientDataSet;
     AQuery: string): Boolean; overload; deprecated;
@@ -91,6 +91,30 @@ uses
   Classes, SysUtils, StrUtils, Forms, Dialogs, Lib.Utils, Variants, Lib.Files;
 
 
+{*******************************************************************************
+
+                                TSQLCONNECTIONM
+
+*******************************************************************************}
+
+//==| Desconstrutor |===========================================================
+destructor TSQLConnectionM.Destroy;
+begin
+  try                                                                           //Tento
+    if Assigned(Self.FSQLDataSet)      then FreeAndNil(Self.FSQLDataSet);       //Destruir o TSQLDataSet dinâmico
+    if Assigned(Self.FDataSetProvider) then FreeAndNil(Self.FDataSetProvider);  //e o TDataSetProvider também, se necessário
+
+    if Assigned(Self.CdsDynamic) then                                           //No caso de haver um ClientDataSet instânciado, verifico
+      if Self.CdsDynamic.Owner = Self then FreeAndNil(Self.CdsDynamic)          //se ele pertence ao SQLConnection e, caso pertença, o destruo
+      else                                 Self.CdsDynamic := nil;              //caso contrário apenas removo a referência ao objeto
+  except                                                                        //Se não conseguir
+    on e: Exception do                                                          //gero um log em arquivo com o erro
+      Lib.Files.Log('ExecuteQuery: Falha ao destruir componentes dinâmicos: ' + e.Message);
+  end;
+
+  inherited Destroy;                                                            //Por fim executo o desconstrutor herdado
+end;
+
 {==| Função - Colocar Parâmetros |==============================================
     Itera um array de Variable, e coloca o valor de cada item em um parâmetro
   com o mesmo índice (se existir) no SQLDataSet.
@@ -104,11 +128,11 @@ var
 begin
   Result := False;                                                              //Assumo Falha
 
-  if not Assigned(Self.SQLDsDynamic) then Exit;                                 //Caso o TSQLDataSet dinâmico não esteja instanciado, abandono a rotina
+  if not Assigned(Self.FSQLDataSet) then Exit;                                  //Caso o TSQLDataSet dinâmico não esteja instanciado, abandono a rotina
 
   try                                                                           //Caso contrário tento
     for idx := 0 to VarArrayHighBound(Args, 1) do                               //iterar os itens do array
-      Self.SQLDsDynamic.Params[idx].Value := Args[idx];                         //e copiar seus valores para os parâmetros do TSQLDataSet
+      Self.FSQLDataSet.Params[idx].Value := Args[idx];                          //e copiar seus valores para os parâmetros do TSQLDataSet
     Result := True;                                                             //Se conseguir copiar todos, retorno verdadeiro
   except                                                                        //Em caso de erro
     on e: Exception do                                                          //gravo a mensagem no log em arquivo
@@ -167,7 +191,6 @@ end;
 
   Retorno: Obteve registros ao executar a query (Booleano).
 ============================================| Leandro Medeiros (20/10/2011) |==}
-
 function TSQLConnectionM.ExecuteQuery(var ACds: TClientDataSet; AQuery: string;
   const Args: array of Variant): Boolean;
 const
@@ -175,23 +198,23 @@ const
 var
   WasConnected : Boolean;
 begin
-  Result            := False;                                                   //Assumo falha
-  WasConnected      := Self.Connected;                                          //Guardo o estado da conexão antes do processamento
-  Self.SQLDsDynamic := nil;
-  Self.DSPDynamic   := nil;
+  Result                := False;                                               //Assumo falha
+  WasConnected          := Self.Connected;                                      //Guardo o estado da conexão antes do processamento
+  Self.FSQLDataSet      := nil;
+  Self.FDataSetProvider := nil;
 
   if Self.DriverName = DRV_FB then                                              //Retiro os espaços e coloco todos
     AQuery := Lib.DB.QueryUpperCase(Trim(AQuery));                              //os caracteres da query em letras maiúsculas
 
   try                                                                           //Tento
-    Self.SQLDsDynamic               := TSQLDataSet.Create(Self);                //instanciar o SQLDataSet,
-    Self.SQLDsDynamic.SQLConnection := Self;                                    //amarro a conexão
-    Self.SQLDsDynamic.CommandText   := AQuery;                                  //Copio a query para a propriedade "Linha de Comando" do SQLDataSet dinâmico
+    Self.FSQLDataSet               := TSQLDataSet.Create(Self);                 //instanciar o SQLDataSet,
+    Self.FSQLDataSet.SQLConnection := Self;                                     //amarro a conexão
+    Self.FSQLDataSet.CommandText   := AQuery;                                   //Copio a query para a propriedade "Linha de Comando" do SQLDataSet dinâmico
     Self.ApplyParamValues(VarArrayOf(Args));                                    //Defino os valores dos parâmetros da query
 
     if not (Copy(AQuery, 1, 6) = 'SELECT') then                                 //Se a query não iniciar com o comando SELECT
     begin
-      Self.SQLDsDynamic.ExecSQL();                                              //devo apenas executar o SQL
+      Self.FSQLDataSet.ExecSQL();                                               //devo apenas executar o SQL
       Result := True;                                                           //e retornar sucesso
     end
 
@@ -201,15 +224,15 @@ begin
       else if ACds.Active then                                                  //senão, caso ele esteja ativo
         ACds.EmptyDataSet;                                                      //limpo os registros dele
 
-      ACds.Active 			       := False;                                        //me certifico que o mesmo esteja desativado
+      ACds.Active := False;                                                     //me certifico que o mesmo esteja desativado
 
-      Self.DspDynamic          := TDataSetProvider.Create(ACds.Owner);          //tento instanciar o provedor de dados,
-      Self.DspDynamic.Name     := DSP_NAME;                                		  //e nomeio o objeto
-      Self.DspDynamic.DataSet  := Self.SQLDsDynamic;                       		  //amarro o TSQLDataSet
+      Self.FDataSetProvider         := TDataSetProvider.Create(ACds.Owner);     //tento instanciar o provedor de dados,
+      Self.FDataSetProvider.Name    := DSP_NAME;                                //e nomeio o objeto
+      Self.FDataSetProvider.DataSet := Self.FSQLDataSet;                       	//amarro o TSQLDataSet
 
       ACds.ProviderName  	     := DSP_NAME;                                     //e amarro o Provedor de dados dinâmico.
 
-      Self.SQLDsDynamic.Active := True;                                    		  //Finalmente ativo o SQLDataSet executando a busca
+      Self.FSQLDataSet.Active := True;                                    		  //Finalmente ativo o SQLDataSet executando a busca
 
       ACds.PacketRecords := - 1;                                                //Me certifico que o Client está sem limitador de pacote de registros (caso contrário o client só receberá os primeiros X registros da busca e depois que o SQLDataSet for destruído não será possível movê-lo)
       ACds.Active        := True;                                               //Ativo o ClientDataSet
@@ -218,12 +241,12 @@ begin
       Result := not ACds.IsEmpty;                                               //Retorno verdadeiro caso a busca tenha retornado ao menos um resultado
     end;
   finally                                                                       //Ao final sempre
-    Self.Connected           := WasConnected;                                   //volto a conexão ao seu estado inicial
-    Self.SQLDsDynamic.Active := False;                                          //Desativo o TSQLDataSet
+    Self.Connected          := WasConnected;                                    //volto a conexão ao seu estado inicial
+    Self.FSQLDataSet.Active := False;                                           //Desativo o TSQLDataSet
 
     try                                                                         //Tento
-      if Assigned(Self.SQLDsDynamic) then FreeAndNil(Self.SQLDsDynamic);        //Destruir o TSQLDataSet dinâmico
-      if Assigned(Self.DspDynamic)   then FreeAndNil(Self.DspDynamic);          //e o TDataSetProvider também, se necessário
+      if Assigned(Self.FSQLDataSet)      then FreeAndNil(Self.FSQLDataSet);     //Destruir o TSQLDataSet dinâmico
+      if Assigned(Self.FDataSetProvider) then FreeAndNil(Self.FDataSetProvider);//e o TDataSetProvider também, se necessário
     except                                                                      //caso não consiga
       on e: Exception do                                                        //gero um log em arquivo com o erro
         Lib.Files.Log('ExecuteQuery: Falha ao destruir componentes dinâmicos: ' + e.Message);
@@ -231,26 +254,18 @@ begin
   end;
 end;
 
-//==| Procedimento - Desconstrutor |============================================
-destructor TSQLConnectionM.Destroy;
-begin
-  try                                                                           //Tento
-    if Assigned(Self.CdsDynamic)   then FreeAndNil(Self.CdsDynamic);            //Destruir o TSQLDataSet dinâmico
-    if Assigned(Self.SQLDsDynamic) then FreeAndNil(Self.SQLDsDynamic);          //Destruir o TSQLDataSet dinâmico
-    if Assigned(Self.DspDynamic)   then FreeAndNil(Self.DspDynamic);            //e o TDataSetProvider também, se necessário
-  except                                                                        //caso não consiga
-    on e: Exception do                                                          //gero um log em arquivo com o erro
-      Lib.Files.Log('ExecuteQuery: Falha ao destruir componentes dinâmicos: ' + e.Message);
-  end;
 
-  inherited Destroy;                                                            //Por fim executo o desconstrutor herdado
-end;
+{*******************************************************************************
+
+                            FUNÇÕES E PROCEDIMENTO
+
+*******************************************************************************}
 
 {==| Função - Query Maiúscula |=================================================
     Muda todos os caracteres de uma string para maiúscula, exceto aqueles que
   estão entre apóstrofos (parâmetros).
 ============================================| Leandro Medeiros (20/10/2011) |==}
-function QueryUpperCase(S: string): string; overload;
+function QueryUpperCase(S: string): string;
 var
   idx     : integer;
   InParam : Boolean;
@@ -326,7 +341,7 @@ end;
     2. Array de Valores                              > String
   Retorno: Cláusula com valores concatenados (string)
 ============================================| Leandro Medeiros (01/11/2011) |==}
-function BuildClause(AClauseField: string; const Args: array of string): string; overload;
+function BuildClause(AClauseField: string; const Args: array of string): string;
 var
   idx  : integer;
 begin
