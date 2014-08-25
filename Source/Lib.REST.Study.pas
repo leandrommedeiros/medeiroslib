@@ -58,7 +58,6 @@ begin
   Self.MethodParams.Params['studyId']             := IntToStr(Self.jStudy.ID);
   Self.MethodParams.Params['originId']            := IntToStr(Self.jStudy.OriginID);
   Self.MethodParams.Params['originName']          := Self.jStudy.OriginName;
-  Self.MethodParams.Params['hasDictation']        := BoolToStr(Self.jStudy.HasDictation);
   Self.MethodParams.Params['modalityId']          := IntToStr(Self.jStudy.ModalityID);
   Self.MethodParams.Params['modality']            := Self.jStudy.Modality;
   Self.MethodParams.Params['modalityDescription'] := Self.jStudy.ModalityDesc;
@@ -69,13 +68,15 @@ begin
   Self.MethodParams.Params['patientName']         := Self.jStudy.PatientName;
   Self.MethodParams.Params['exam']                := Self.jStudy.ExamDescription;
   Self.MethodParams.Params['dicomSituationId']    := IntToStr(Self.jStudy.DicomSituationID);
-  Self.MethodParams.Params['dicomImg']            := Self.jStudy.DicomSituation;
+  Self.MethodParams.Params['dicomSituation']      := Self.jStudy.DicomSituation;
+  Self.MethodParams.Params['hasDictation']        := BoolToStr(Self.jStudy.HasDictation);
   Self.MethodParams.Params['hasPreviousResults']  := BoolToStr(Self.jStudy.PriorResults);
   Self.MethodParams.Params['urgent']              := BoolToStr(Self.jStudy.Urgent);
   Self.MethodParams.Params['accessionNumber']     := Self.jStudy.AccessionNumber;
   Self.MethodParams.Params['studyUID']            := Self.jStudy.StudyUID;
   Self.MethodParams.Params['fileName']            := Self.jStudy.FileName;
   Self.MethodParams.Params['fileSize']            := IntToStr(Self.jStudy.FileSize);
+  Self.MethodParams.Params['imagesCount']         := IntToStr(Self.jStudy.ImagesCount);
 
   try
     Formatting := TFormatSettings.Create('pt-br');                              //Pode Ser 1046 também
@@ -86,7 +87,7 @@ begin
     if Self.jStudy.DeliveryDate <> 0 then
       Self.MethodParams.Params['deliveryDate'] := DateTimeToStr(Self.jStudy.DeliveryDate, Formatting);
   except
-    on e: Exception do Lib.Files.Log('Erro: Date Parsing: ' + e.Message);
+    on e: Exception do Lib.Files.Log('Error at date parsing: ' + e.Message);
   end;
 end;
 
@@ -171,7 +172,7 @@ end;
 //==| Definir Situação DICOM |==================================================
 function TRESTStudy.UpdateDicomInformation(const ANewDcmSituation: integer): Boolean;
 begin
-  if Self.jStudy.DicomSituationID =  ANewDcmSituation then
+  if Self.jStudy.DicomSituationID = ANewDcmSituation then
   begin
     Result := True;
     Exit;
