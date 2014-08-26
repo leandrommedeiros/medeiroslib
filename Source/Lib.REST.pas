@@ -264,7 +264,7 @@ begin
     else begin
       Lib.Files.Log(Self.GetLastError);
 
-      if (Self.GetLastErrorCode = ERROR_COD_INVALID_ORIGIN) and
+      if (Self.GetLastErrorCode = ERROR_COD_INVALID_SESSION) and
          (Self.Login) then
       begin
         Result := Self.Execute(AClass, AMethod);
