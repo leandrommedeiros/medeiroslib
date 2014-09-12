@@ -10,7 +10,10 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  DB, SqlExpr, DBClient, Provider, ExtCtrls, Lib.StrUtils;
+  {$IFNDEF VER150}
+  MidasLib, DBXMySQL,
+  {$ENDIF}
+  Midas, MidasCon, DB, SqlExpr, DBClient, Provider, ExtCtrls, Lib.StrUtils;
 
 { Constantes }
 const
