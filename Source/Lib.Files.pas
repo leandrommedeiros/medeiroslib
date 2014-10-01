@@ -24,7 +24,8 @@ type
 {$ENDIF}
 
 { Protótipos }
-  function  BytesToMB(iBytes: integer): Real;
+  function  BytesToMB(ABytes: integer): Real;
+  function  BytesToMega(ABytes: integer): string;
   function  CreateTempDir(ASufix: string): string;
   procedure PriorFolder(var sDir: string; iRepeat: integer = 1);
   function  ParentFolder(sDir: string; iRepeat: integer = 1): string;
@@ -57,6 +58,7 @@ type
     const AInitialByte: integer; AByteCount: integer): Boolean;
   function  SaveBytesToFile(const ABuffer: TBytes; const AFileName: string): Boolean;
   function  ExtractLastFolderName(AFileName: string): string;
+  function  ExtractURLFileName(AFileName: string): string;
 
 implementation
 
@@ -71,9 +73,21 @@ uses
 
   Retorno: Correspondente em MegaBytes (Real)
 ============================================| Leandro Medeiros (20/10/2011) |==}
-function BytesToMB(iBytes: integer): Real;
+function BytesToMB(ABytes: integer): Real;
 begin
-  Result := iBytes / BYTES_TO_MEGA;
+  Result := ABytes / BYTES_TO_MEGA;
+end;
+
+{==| Função - Bytes Para MegaBytes |============================================
+    Converte Bytes em MegaBytes.
+  Parâmetros de entrada:
+    1. Quantidade de Bytes > Integer
+
+  Retorno: Correspondente em MegaBytes (String)
+============================================| Leandro Medeiros (20/10/2011) |==}
+function BytesToMega(ABytes: integer): string;
+begin
+  Result := Format('%2.f MB', [Lib.Files.BytesToMB(ABytes)]);
 end;
 
 //==| Procedimento - Criar Diretório Temporário |===============================
@@ -672,6 +686,31 @@ begin
     end;
   end;
 end;
+
+//==| Extrair nome do arquivo de URL  |=========================================
+function ExtractURLFileName(AFileName: string): string;
+var
+  idx : integer;
+begin
+  Result := EmptyStr;
+
+  idx := System.Length(AFileName);
+
+  if AFileName[idx] = '/' then
+    System.Delete(AFileName, idx, 1);
+
+  while Windows.BOOL(idx) do
+  begin
+    if AFileName[idx] <> '/' then
+      idx := idx - 1
+
+    else begin
+      Result := Copy(AFileName, idx + 1, Length(AFileName));
+      idx    := 0;
+    end;
+  end;
+end;
+
 //==============================================================================
 
 end.

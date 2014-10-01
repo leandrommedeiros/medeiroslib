@@ -11,13 +11,13 @@ interface
 { Bibliotecas para Interface }
 uses
   {$IFNDEF VER150}
-  MidasLib, DBXMySQL,
+  MidasLib, Data.DBXMySQL, Data.DBXFirebird,
   {$ENDIF}
   Midas, MidasCon, DB, SqlExpr, DBClient, Provider, ExtCtrls, Lib.StrUtils;
 
 { Constantes }
 const
-  CONN_NAME_FB    = 'FirebirdConnection';
+  CONN_NAME_FB    = 'FBConnection';
   CONN_NAME_MYSQL = 'MySQLConnection';
   DRV_FB          = 'Firebird';
   DRV_MYSQL       = 'MySQL';
@@ -76,6 +76,8 @@ type
   function  GetFieldType(const S: string): TFieldType;
   function  NewMySQLConn(const AHost: string; const APort: integer;
     const ADBName, AUser, APasswd: string): TSQLConnectionM;
+  function  NewFirebirdConn(const AHost: string; const APort: integer;
+    const ADBFile, AUser, APassword: string): TSQLConnectionM;
 
 { Protótipos - Apenas para Delphi 7 }
   {$IFDEF VER150}
@@ -91,7 +93,8 @@ implementation
 
 { Bibliotecas para Implementação }
 uses
-  Classes, SysUtils, StrUtils, Forms, Dialogs, Lib.Utils, Variants, Lib.Files;
+  Classes, SysUtils, StrUtils, Forms, Dialogs, Lib.Utils, Variants, Lib.Files,
+  Math, Windows;
 
 
 {*******************************************************************************
@@ -766,8 +769,8 @@ begin
     ImgDestiny.Picture.LoadFromFile(sTempFile);
   finally
     Blob.Free;
-    if FileExists(sTempFile) then
-      DeleteFile(sTempFile);
+    if SysUtils.FileExists(sTempFile) then
+      SysUtils.DeleteFile(sTempFile);
   end;
 end;
 
@@ -826,7 +829,7 @@ begin
 
   with Result do
   begin
-    Name            := 'MySQLCon';
+    Name            := DRV_MYSQL;
     ConnectionName  := CONN_NAME_MYSQL;
     DriverName      := DRV_MYSQL;
     Connected       := False;
@@ -839,6 +842,48 @@ begin
                                              APasswd,
                                              APort]);
   end;
+end;
+
+//==| Criar Nova Conexão com o Firebird |=======================================
+function  NewFirebirdConn(const AHost: string; const APort: integer;
+  const ADBFile, AUser, APassword: string): TSQLConnectionM;
+const
+  FIREBIRD_PARAMS = 'DriverName=Firebird' +#13+#10
+                  + 'Database=%s/%d:%s' +#13+#10
+                  + 'RoleName=RoleName' +#13+#10
+                  + 'User_Name=%s' +#13+#10
+                  + 'Password=%s' +#13+#10
+                  + 'ServerCharSet=' +#13+#10
+                  + 'SQLDialect=3' +#13+#10
+                  + 'ErrorResourceFile=' +#13+#10
+                  + 'LocaleCode=0000' +#13+#10
+                  + 'BlobSize=-1' +#13+#10
+                  + 'CommitRetain=False' +#13+#10
+                  + 'WaitOnLocks=True' +#13+#10
+                  + 'IsolationLevel=ReadCommitted' +#13+#10
+                  + 'Trim Char=False';
+begin
+  Result := TSQLConnectionM.Create(nil);
+
+  Result.Name           := 'SQLFBCon';
+  Result.ConnectionName := Lib.DB.CONN_NAME_FB;
+  Result.DriverName     := Lib.DB.DRV_FB;
+  Result.Connected      := False;
+  Result.KeepConnection := False;
+  Result.LoginPrompt    := False;
+  Result.Params.Text    := Format(FIREBIRD_PARAMS, [AHost,
+                                                    Math.ifthen(Bool(APort), APort, 3050),
+                                                    ADBFile,
+                                                    AUser,
+                                                    APassword]);
+  try
+    Result.Connected := True;
+  except
+    on e: Exception do
+      Lib.Files.Log('Falha de conexão ao banco de dados: ' + e.Message);
+  end;
+
+  Result.Connected := False;
 end;
 
 {$IFDEF VER150}

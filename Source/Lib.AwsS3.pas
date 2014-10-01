@@ -45,7 +45,7 @@ type
     FBucketName    : string;
 
     //Variáveis
-    StorageService : TAmazonStorageService;
+    FStorageService : TAmazonStorageService;
 
     function ValidateFileName(const AFileName: string): string;
     function ValidateS3Path(const APath: string): string;
@@ -64,6 +64,8 @@ type
 
     constructor Create(const AccountName, AccountKey, ABucketName: string); overload;
     destructor  Destroy; override;
+
+    property StorageService       : TAmazonStorageService   read FStorageService       write FStorageService;
   published
     property BucketName           : string                  read FBucketName           write FBucketName;
     property OnMultipartWorkBegin : TS3MultipartOnWorkBegin read FOnMultipartWorkBegin write FOnMultipartWorkBegin;
@@ -148,7 +150,7 @@ end;
 //==| Destrutor |===============================================================
 destructor TS3Connection.Destroy;
 begin
-  FreeAndNil(Self.StorageService);
+  FreeAndNil(Self.FStorageService);
 
   inherited Destroy;
 end;
@@ -159,7 +161,7 @@ begin
   Result := False;
 
   try
-    Self.StorageService := TAmazonStorageService.Create(Self);
+    Self.FStorageService := TAmazonStorageService.Create(Self);
     Result              := True;
   except
     on e: Exception do
@@ -196,7 +198,7 @@ begin
     sFileName     := Self.ValidateS3Path(APath)                                 //Valido o nome de arquivo de destino segundo regras do S3
                    + Self.ValidateFileName(AFileName);
 
-    if Self.StorageService.GetObjectProperties(Self.FBucketName,
+    if Self.FStorageService.GetObjectProperties(Self.FBucketName,
                                                sFileName,
                                                sProperties,
                                                sMetadata,
@@ -227,7 +229,7 @@ var
   Aux    : IXMLNode;
 begin
   Result := nil;
-  XML    := Self.StorageService.ListBucketsXML(nil);
+  XML    := Self.FStorageService.ListBucketsXML(nil);
 
   if XML <> EmptyStr then
   begin
@@ -306,7 +308,7 @@ begin
                                  + Self.ValidateFileName(AFileName);
 
     try                                                                         //Tento
-      Self.StorageService.UploadObject(Self.FBucketName,                        //Enviar o arquivo para a Bucket configurada na instância
+      Self.FStorageService.UploadObject(Self.FBucketName,                        //Enviar o arquivo para a Bucket configurada na instância
                                        sTargetFile,                             //no destino validado
                                        FileContent,                             //a partir do Stream que montei em memória
                                        False,
@@ -423,7 +425,7 @@ begin
 
     CoInitialize(nil);
 
-    sUploadID := Self.StorageService.InitiateMultipartUpload(Self.FBucketName,
+    sUploadID := Self.FStorageService.InitiateMultipartUpload(Self.FBucketName,
                                                              sTargetFile,
                                                              slMetadata,
                                                              slHeaders,
@@ -446,7 +448,7 @@ begin
 
             while not lgUploaded and Bool(iTries) do
             begin
-              if Self.StorageService.UploadPart(Self.FBucketName,
+              if Self.FStorageService.UploadPart(Self.FBucketName,
                                                 sTargetFile,
                                                 sUploadID,
                                                 iPartNo,
@@ -468,7 +470,7 @@ begin
               end
 
               else begin
-                Self.StorageService.AbortMultipartUpload(Self.FBucketName, sTargetFile, sUploadID);
+                Self.FStorageService.AbortMultipartUpload(Self.FBucketName, sTargetFile, sUploadID);
                 FinishConnection;
               end;
             end;
@@ -476,7 +478,7 @@ begin
         end;
       end;
 
-      if Self.StorageService.CompleteMultipartUpload(Self.FBucketName,
+      if Self.FStorageService.CompleteMultipartUpload(Self.FBucketName,
                                                      sTargetFile,
                                                      sUploadID,
                                                      PartsList,
@@ -492,7 +494,7 @@ begin
       begin
         Lib.Files.Log(Format(ERROR_UPLOADING_FILE,                              //gravo um log tentando obter a mensagem do erro
                             [AFileName, Self.FBucketName, e.Message]));
-        Self.StorageService.AbortMultipartUpload(Self.FBucketName, sTargetFile, sUploadID);
+        Self.FStorageService.AbortMultipartUpload(Self.FBucketName, sTargetFile, sUploadID);
         FinishConnection;
       end;
     end;
@@ -523,7 +525,7 @@ begin
     end;
 
     try
-      StorageService.GetObject(Self.FBucketName,
+      FStorageService.GetObject(Self.FBucketName,
                                sSourceFile,
                                FileContent,
                                CloudResponse);

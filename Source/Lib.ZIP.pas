@@ -81,7 +81,7 @@ end;
 function UncompressFile(const APath, AZipFile: string;
   const ADelAfterUnzip: Boolean = False): Boolean;
 var
- UnZipper: TZipFile;
+  UnZipper: TZipFile;
 begin
   Result   := False;
   UnZipper := TZipFile.Create;
