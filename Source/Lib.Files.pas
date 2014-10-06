@@ -59,6 +59,7 @@ type
   function  SaveBytesToFile(const ABuffer: TBytes; const AFileName: string): Boolean;
   function  ExtractLastFolderName(AFileName: string): string;
   function  ExtractURLFileName(AFileName: string): string;
+  function  IsDirectory(const AFileName: string): Boolean;
 
 implementation
 
@@ -711,6 +712,11 @@ begin
   end;
 end;
 
+//==| Função - É Diretório |====================================================
+function IsDirectory(const AFileName: string): Boolean;
+begin
+  Result := (Windows.GetFileAttributes(PWideChar(AFileName)) and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY;
+end;
 //==============================================================================
 
 end.
