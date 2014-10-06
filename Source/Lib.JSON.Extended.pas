@@ -673,6 +673,7 @@ type
     function GetBool(const APropertyName: string; const ADefaultValue: Boolean = False): Boolean;
     function GetDtTime(const APropertyName: string; const ADefaultValue: TDateTime = 0): TDateTime;
     function GetDate(const APropertyName: string; const ADefaultValue: TDate = 0): TDate;
+    function GetTime(const APropertyName: string; const ADefaultValue: TDateTime = 0): TDateTime;
   end;
 {*********************************************** Desenvolvido em 16/07/2014 ***}
 
@@ -2891,6 +2892,21 @@ begin
   else if ADefaultValue <> 0 then Result := ADefaultValue
   else                            Result := Date();
 end;
+
+//==| Função - Obter Hora |=====================================================
+function TJSONExtended.GetTime(const APropertyName: string;
+  const ADefaultValue: TDateTime = 0): TDateTime;
+var
+  sAux       : string;
+  Formatting : TFormatSettings;
+begin
+  Formatting := TFormatSettings.Create('pt-br');                                //Pode Ser 1046 também
+
+  sAux := Self.GetStr(APropertyName);
+  if sAux <> EmptyStr then        Result := StrToTime(sAux, Formatting)
+  else if ADefaultValue <> 0 then Result := ADefaultValue;
+end;
+
 //==============================================================| 16/07/2014 |==
 
 initialization
