@@ -29,6 +29,9 @@ package MedeirosLib;
 {$IMPLICITBUILD ON}
 
 requires
+  {$IFDEF VER150}
+  indy,
+  {$ELSE}
   DbxCommonDriver,
   DbxClientDriver,
   CustomIPTransport,
@@ -38,17 +41,20 @@ requires
   IndyIPClient,
   IndyIPCommon,
   CloudService,
+  DBXMySQLDriver,
+  dsnapcon,
+  {$ENDIF}
   xmlrtl,
   rtl,
   vcl,
   dbrtl,
   dbexpress,
-  dsnap,
-  DBXMySQLDriver,
-  dsnapcon;
+  dsnap;
 
 contains
   ComponentsRegister in '..\Source\ComponentsRegister.pas',
+
+  {$IFNDEF VER150}
   Lib.AwsS3 in '..\Source\Lib.AwsS3.pas',
   Lib.JSON.Doc in '..\Source\Lib.JSON.Doc.pas',
   Lib.JSON.Extended in '..\Source\Lib.JSON.Extended.pas',
@@ -61,6 +67,8 @@ contains
   Lib.REST in '..\Source\Lib.REST.pas',
   Lib.REST.Study in '..\Source\Lib.REST.Study.pas',
   Lib.ZIP in '..\Source\Lib.ZIP.pas',
+  {$ENDIF}
+
   Lib.DB in '..\Source\Lib.DB.pas',
   Lib.Files in '..\Source\Lib.Files.pas',
   Lib.FTP in '..\Source\Lib.FTP.pas',

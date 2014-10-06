@@ -11,9 +11,9 @@ interface
 { Bibliotecas para Interface }
 uses
   {$IFNDEF VER150}
-  MidasLib, Data.DBXMySQL, Data.DBXFirebird,
+  MidasCon, Data.DBXMySQL, Data.DBXFirebird,
   {$ENDIF}
-  Midas, MidasCon, DB, SqlExpr, DBClient, Provider, ExtCtrls, Lib.StrUtils;
+  MidasLib, Midas, DB, SqlExpr, DBClient, Provider, ExtCtrls, Lib.StrUtils;
 
 { Constantes }
 const
