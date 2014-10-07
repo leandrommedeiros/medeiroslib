@@ -45,7 +45,7 @@ Há duas maneiras de contornar a situação:
 No Delphi 7 basta abrir o menu "Project" > "Options" > "Directories/Conditionals" e alterar os diretórios "Output", "Unit Output" e "DCP Output".
 No Delphi XE6 abra o menu "Project" > "Options" > "Delphi Compiler" e altere os diretórios "DCP Output", "Package Output" e "Unit Output".
 
-## Instalar o BPL ##
+### Instalar o BPL ###
 Após compilar o pacote com sucesso há duas maneiras de instalá-lo:
 
 1. Ainda com o projeto, aberto clique com o botão direito sobre "MedeirosLib.bpl" (Project Manager) e selecione "Install".
@@ -56,9 +56,7 @@ Pronto! Agora a paleta "MedeirosLib" estará disponível na IDE e quaisquer unit
 # Contato #
 ***Leandro Medeiros***
 
-* [LinkedIn](br.linkedin.com/in/medeirosleandro)
-
-* [BitBucket](https://bitbucket.org/leandro_medeiros)
+* [LinkedIn](https://br.linkedin.com/in/medeirosleandro)
 
 * [GitHub](https://github.com/leandrommedeiros)
 
