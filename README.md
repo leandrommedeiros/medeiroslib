@@ -34,3 +34,28 @@ Para aqueles que no passo anterior escolheram clonar o diretório dentro da past
 **IMPORTANTE**: Quando na versão XE6, a MedeirosLib é compatível com a arquitetura x64, porém para utilizá-la deve-se referenciar a pasta source também na LibraryPath 64 bit. Para isso basta selecionar a plataforma "64-bit Windows", clicar novamente no botão "..." e repetir o processo de adicionar o caminho.
 
 ### Compilar o Pacote ###
+Ao abrir o arquivo "..\MedeirosLib\Package\MedeirosLib.dpk" o projeto deverá compilar normalmente.
+
+Em versões de Windows superiores ao Vista se o Delphi for instalado dentro das pastas de sistema, "Arquivos de Programas" por exemplo, é possível que as subpastas do Delphi herdem suas permissões.
+Como dito anteriormente, o projeto está configurado para gerar arquivos *.dcu, *.dcp e *.bpl diretamente nas pastas do Delphi, e isso pode gerar erros.
+
+Há duas maneiras de contornar a situação:
+1. Altere as configurações de segurança da pasta de instalação do Delphi dando a permissão de "Controle Total" ao seu usuário e ao usuário Sistema (caso seu computador não esteja em um domínio é mais fácil dar permissões ao grupo "Todos").
+2. Altere a pasta de saída do pacote.
+No Delphi 7 basta abrir o menu "Project" > "Options" > "Directories/Conditionals" e alterar os diretórios "Output", "Unit Output" e "DCP Output".
+No Delphi XE6 abra o menu "Project" > "Options" > "Delphi Compiler" e altere os diretórios "DCP Output", "Package Output" e "Unit Output".
+
+## Instalar o BPL ##
+Após compilar o pacote com sucesso há duas maneiras de instalá-lo:
+1. Ainda com o projeto, aberto clique com o botão direito sobre "MedeirosLib.bpl" (Project Manager) e selecione "Install".
+2. Abra o menu "Component" > "Install Package" > "Add" e navegue até o arquivo MedeirosLib.bpl que foi criado no diretório de saída escolhido.
+
+Pronto! Agora a paleta "MedeirosLib" estará disponível na IDE e quaisquer units poderão ser referênciadas na cláusula "uses" de seus projetos, aproveite!
+
+# Contato #
+***Leandro Medeiros***
+[LinkedIn](br.linkedin.com/in/medeirosleandro)
+[BitBucket](https://bitbucket.org/leandro_medeiros)
+[GitHub](https://github.com/leandrommedeiros)
+[Facebook](https://www.facebook.com/leandro.m.medeiros)
+[Twitter](https://twitter.com/LeMedeiros10)
