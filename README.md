@@ -22,7 +22,5 @@ O projeto está parametrizado para compilar todas as units diretamente nas pasta
 
 ### Referência ao Código-fonte ###
 Para que todos os fontes estejam disponíveis em quaisquer projetos que se venha à trabalhar (cláusula USES) é desejável adicioná-los diretamente ao Path do Delphi. Há um caminho diferente para cada versão do Delphi:
-* Borland Delphi 7: 
-  -> Menu "Tools" > "Environment Options" > "Library" > "Library Path" > "..."
-* Embarcadero Delphi XE6
-  -> Menu "Tools" > "Options" > "Environment Options" > "Delphi Options" > "Library" > "Library Path" > "..."
+* **Borland Delphi 7 ****: Menu "Tools" > "Environment Options" > "Library" > "Library Path" > "..."
+* ***Embarcadero Delphi XE6***: Menu "Tools" > "Options" > "Environment Options" > "Delphi Options" > "Library" > "Library Path" > "..."
