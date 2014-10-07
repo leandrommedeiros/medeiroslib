@@ -53,8 +53,13 @@ Pronto! Agora a paleta "MedeirosLib" estará disponível na IDE e quaisquer unit
 
 # Contato #
 ***Leandro Medeiros***
-[LinkedIn](br.linkedin.com/in/medeirosleandro)
-[BitBucket](https://bitbucket.org/leandro_medeiros)
-[GitHub](https://github.com/leandrommedeiros)
-[Facebook](https://www.facebook.com/leandro.m.medeiros)
-[Twitter](https://twitter.com/LeMedeiros10)
+
+* [LinkedIn](br.linkedin.com/in/medeirosleandro)
+
+* [BitBucket](https://bitbucket.org/leandro_medeiros)
+
+* [GitHub](https://github.com/leandrommedeiros)
+
+* [Facebook](https://www.facebook.com/leandro.m.medeiros)
+
+* [Twitter](https://twitter.com/LeMedeiros10)
