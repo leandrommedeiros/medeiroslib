@@ -22,5 +22,15 @@ O projeto está parametrizado para compilar todas as units diretamente nas pasta
 
 ### Referência ao Código-fonte ###
 Para que todos os fontes estejam disponíveis em quaisquer projetos que se venha à trabalhar (cláusula USES) é desejável adicioná-los diretamente ao Path do Delphi. Há um caminho diferente para cada versão do Delphi:
-* **Borland Delphi 7 ****: Menu "Tools" > "Environment Options" > "Library" > "Library Path" > "..."
+
+* ***Borland Delphi 7***: Menu "Tools" > "Environment Options" > "Library" > "Library Path" > "..."
 * ***Embarcadero Delphi XE6***: Menu "Tools" > "Options" > "Environment Options" > "Delphi Options" > "Library" > "Library Path" > "..."
+
+Agora basta adicionar na caixa de diálogo "Directories" o caminho para a pasta "..\MedeirosLib\Source".
+Para aqueles que no passo anterior escolheram clonar o diretório dentro da pasta de instalação do Delphi é possível utilizar variáveis de ambiente para encurtar o caminho, sendo a variável "($DELPHI)" usada no Delphi 7 e "($BDS)" a variável do Delphi XE6.
+
+***Ex.:*** "($DELPHI)\Components\MedeirosLib\Source"; "($BDS)\Components\MedeirosLib\Source".
+
+**IMPORTANTE**: Quando na versão XE6, a MedeirosLib é compatível com a arquitetura x64, porém para utilizá-la deve-se referenciar a pasta source também na LibraryPath 64 bit. Para isso basta selecionar a plataforma "64-bit Windows", clicar novamente no botão "..." e repetir o processo de adicionar o caminho.
+
+### Compilar o Pacote ###
