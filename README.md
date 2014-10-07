@@ -46,6 +46,7 @@ No Delphi XE6 abra o menu "Project" > "Options" > "Delphi Compiler" e altere os 
 
 ## Instalar o BPL ##
 Após compilar o pacote com sucesso há duas maneiras de instalá-lo:
+
 1. Ainda com o projeto, aberto clique com o botão direito sobre "MedeirosLib.bpl" (Project Manager) e selecione "Install".
 2. Abra o menu "Component" > "Install Package" > "Add" e navegue até o arquivo MedeirosLib.bpl que foi criado no diretório de saída escolhido.
 
