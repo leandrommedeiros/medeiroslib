@@ -190,7 +190,6 @@ begin
   Result := False;
 
   try
-    Self.MethodParams := TRESTParameters.Create;
     Self.MethodParams.Params['user']   := Self.AuthUser;
     Self.MethodParams.Params['passwd'] := Self.AuthPassword;
 

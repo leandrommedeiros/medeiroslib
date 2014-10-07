@@ -39,6 +39,7 @@ Em versões de Windows superiores ao Vista se o Delphi for instalado dentro das 
 Como dito anteriormente, o projeto está configurado para gerar arquivos *.dcu, *.dcp e *.bpl diretamente nas pastas do Delphi, e isso pode gerar erros.
 
 Há duas maneiras de contornar a situação:
+
 1. Altere as configurações de segurança da pasta de instalação do Delphi dando a permissão de "Controle Total" ao seu usuário e ao usuário Sistema (caso seu computador não esteja em um domínio é mais fácil dar permissões ao grupo "Todos").
 2. Altere a pasta de saída do pacote.
 No Delphi 7 basta abrir o menu "Project" > "Options" > "Directories/Conditionals" e alterar os diretórios "Output", "Unit Output" e "DCP Output".
