@@ -1,5 +1,4 @@
-![MedeirosLib2.png](https://bitbucket.org/repo/ogjnoL/images/1832895415-MedeirosLib2.png)
-
+![MedeirosLibSmall.png](https://bitbucket.org/repo/ogjnoL/images/2862473348-MedeirosLibSmall.png)
 # Sobre #
 ***MedeirosLib*** é uma package para Delphi que vem sendo desenvolvida por [Leandro Medeiros](br.linkedin.com/in/medeirosleandro) desde  2010.
 
