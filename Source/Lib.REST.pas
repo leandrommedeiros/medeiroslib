@@ -50,7 +50,7 @@ type
     function GetLastError: String;
     function GetLastErrorCode: String;
     function Execute(const AClass, AMethod: string; ATries: integer = 3;
-      const ExecutionLog: Boolean = True): Boolean;
+      const AExecutionLog: Boolean = True; const AClearParams: Boolean = True): Boolean;
     property SessionData : TONRADSession read FSessionData;
   published
     property AuthUser          : string read FUser          write FUser;
@@ -193,7 +193,7 @@ begin
     Self.MethodParams.Params['user']   := Self.AuthUser;
     Self.MethodParams.Params['passwd'] := Self.AuthPassword;
 
-    if (Self.Execute(REST_CLASS_USER, 'Login')) and
+    if (Self.Execute(REST_CLASS_USER, 'Login', 3, True, False)) and
        (Self.MethodResult.GetStr('loginStatus') = JSON_FALSE) then
     begin
       Self.FSessionData.UserID      := Self.MethodResult.GetInt('userId');
@@ -221,7 +221,8 @@ end;
 
 //==| Função - Executar |=======================================================
 function TRESTConnection.Execute(const AClass, AMethod: string;
-  ATries: integer = 3; const ExecutionLog: Boolean = True): Boolean;
+  ATries: integer = 3; const AExecutionLog: Boolean = True;
+  const AClearParams: Boolean = True): Boolean;
 var
   sParams: string;
 begin
@@ -246,7 +247,7 @@ begin
         if ATries > 0 then
         begin
           Sleep(3000);
-          Result := Self.Execute(AClass, AMethod, ATries);
+          Result := Self.Execute(AClass, AMethod, ATries, AExecutionLog, AClearParams);
           Exit;
         end;
       end;
@@ -266,14 +267,15 @@ begin
       if (Self.GetLastErrorCode = ERROR_COD_INVALID_SESSION) and
          (Self.Login) then
       begin
-        Result := Self.Execute(AClass, AMethod);
+        Result := Self.Execute(AClass, AMethod, ATries, AExecutionLog, AClearParams);
       end;
     end
   finally
-    Self.MethodParams.Clear;
+    if AClearParams then Self.MethodParams.Clear;
+
     Self.Disconnect;
 
-    if ExecutionLog then
+    if AExecutionLog then
       Lib.Files.Log(System.SysUtils.Format(WS_EXEC_LOG, [Self.WSHost,
                                                          Self.WSPort,
                                                          AClass,

@@ -715,7 +715,7 @@ end;
 //==| Função - É Diretório |====================================================
 function IsDirectory(const AFileName: string): Boolean;
 begin
-  Result := (Windows.GetFileAttributes(PWideChar(AFileName)) and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY;
+  Result := (Windows.GetFileAttributes(PChar(AFileName)) and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY;
 end;
 //==============================================================================
 

@@ -28,6 +28,8 @@ type
     procedure Execute; override;
     procedure SetSleepingTime(const ASleepingTime: Real);
 
+    property SleepingTime : real read FSleepingTime write SetSleepingTime;
+
   { Declarações Públicas }
   public
     constructor Create(const ACreateSuspended: Boolean = False;
@@ -37,10 +39,6 @@ type
   { Declarações Protegidas (Acessíveis a partir de classes filhas) }
   protected
     function MainRoutine : Boolean; virtual; abstract;
-
-  { Propriedades Publicadas }
-  published
-    property SleepingTime : real read FSleepingTime write SetSleepingTime;
   end;
 
 implementation

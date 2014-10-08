@@ -22,7 +22,7 @@ type
     procedure PutString(AIndex: Integer; const AValue: string);
   public
     constructor Create;
-    destructor  Destroy;
+    destructor  Destroy; override;
     function  Count: Integer;
     procedure Clear;
 

@@ -109,16 +109,16 @@
         <DCC_CBuilderOutput>None</DCC_CBuilderOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_OSX32)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;CloudService;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;CloudService;DBXMySQLDriver;DBXFirebirdDriver;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;CloudService;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;CloudService;DBXMySQLDriver;dsnapcon;DBXFirebirdDriver;$(DCC_UsePackage)</DCC_UsePackage>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;CloudService;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>xmlrtl;rtl;vcl;DbxCommonDriver;dbrtl;DbxClientDriver;CustomIPTransport;dbexpress;dsnap;IndySystem;IndyProtocols;IndyCore;IndyIPClient;IndyIPCommon;CloudService;DBXMySQLDriver;dsnapcon;DBXFirebirdDriver;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
@@ -168,14 +168,15 @@
         <DCCReference Include="IndyIPClient.dcp"/>
         <DCCReference Include="IndyIPCommon.dcp"/>
         <DCCReference Include="CloudService.dcp"/>
+        <DCCReference Include="DBXMySQLDriver.dcp"/>
+        <DCCReference Include="DBXFirebirdDriver.dcp"/>
+        <DCCReference Include="dsnapcon.dcp"/>
         <DCCReference Include="xmlrtl.dcp"/>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
         <DCCReference Include="dbrtl.dcp"/>
         <DCCReference Include="dbexpress.dcp"/>
         <DCCReference Include="dsnap.dcp"/>
-        <DCCReference Include="DBXMySQLDriver.dcp"/>
-        <DCCReference Include="dsnapcon.dcp"/>
         <DCCReference Include="..\Source\ComponentsRegister.pas"/>
         <DCCReference Include="..\Source\Lib.AwsS3.pas"/>
         <DCCReference Include="..\Source\Lib.JSON.Doc.pas"/>
