@@ -32,6 +32,7 @@ type
     function UpdateDicomInformation: Boolean; overload;
     function UpdateDicomInformation(const ANewDcmSituation: integer): Boolean; overload;
     function GetDicomRepositorySettings(const AOriginID: integer): Boolean;
+    function UpdateDownloadListFlag(const AUserID: integer): Boolean;
     function Insert: Boolean; overload;
     function Insert(ACds: TClientDataSet): String; overload;
   end;
@@ -209,6 +210,26 @@ begin
   Self.MethodParams.Params['originId'] := IntToStr(AOriginID);
 
   Result := Self.Execute(REST_CLASS_ORIGIN, 'GetInfo');
+end;
+
+//==| Atualizar Flag na lista de Download |=====================================
+function TRESTStudy.UpdateDownloadListFlag(const AUserID: integer): Boolean;
+begin
+  Result := False;
+
+  try
+    Self.MethodParams.Params['userId'] := IntToStr(AUserID);
+    Self.FeedParameters;
+
+    if Self.Execute(REST_CLASS_USER, 'SetImagesDownloaded') then
+    begin
+      Self.jStudy.SetInfo(Self.MethodResultStr);
+      Result := WinAPI.Windows.Bool(Self.jStudy.ID);
+    end;
+  except
+    on E: exception do
+      Lib.Files.Log('Erro ao obter dados do estudo via WebService: ' + E.Message);
+  end;
 end;
 
 {==| Função - Inserir |=========================================================                                                                                                                        |==================================================

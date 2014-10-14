@@ -42,6 +42,7 @@ requires
   IndyIPCommon,
   CloudService,
   DBXMySQLDriver,
+  DBXFirebirdDriver,
   dsnapcon,
   {$ENDIF}
   xmlrtl,

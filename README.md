@@ -1,6 +1,6 @@
 ![MedeirosLibSmall.png](https://bitbucket.org/repo/ogjnoL/images/2862473348-MedeirosLibSmall.png)
 # Sobre #
-***MedeirosLib*** é uma package para Delphi que vem sendo desenvolvida por [Leandro Medeiros](br.linkedin.com/in/medeirosleandro) desde  2010.
+***MedeirosLib*** é uma package para Delphi que vem sendo desenvolvida por [Leandro Medeiros](https://br.linkedin.com/in/medeirosleandro) desde  2010.
 
 Todas as units são compiláveis no Embarcadero Delphi XE6 ou superior, porém também é possível aproveitar boa parte de suas bibliotecas no Borland Delphi 7.
 
@@ -36,7 +36,7 @@ Para aqueles que no passo anterior escolheram clonar o diretório dentro da past
 Ao abrir o arquivo "..\MedeirosLib\Package\MedeirosLib.dpk" o projeto deverá compilar normalmente.
 
 Em versões de Windows superiores ao Vista se o Delphi for instalado dentro das pastas de sistema, "Arquivos de Programas" por exemplo, é possível que as subpastas do Delphi herdem suas permissões.
-Como dito anteriormente, o projeto está configurado para gerar arquivos *.dcu, *.dcp e *.bpl diretamente nas pastas do Delphi, e isso pode gerar erros.
+Como dito anteriormente, o projeto está configurado para gerar arquivos .dcu, .dcp e .bpl diretamente nas pastas do Delphi, e isso pode gerar erros.
 
 Há duas maneiras de contornar a situação:
 
