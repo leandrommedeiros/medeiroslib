@@ -60,6 +60,7 @@ type
   function  ExtractLastFolderName(AFileName: string): string;
   function  ExtractURLFileName(AFileName: string): string;
   function  IsDirectory(const AFileName: string): Boolean;
+  function  DirectoryIsEmpty(const APath: string): Boolean;
 
 implementation
 
@@ -278,7 +279,7 @@ begin
 
     while not Bool(iError) do                                                   //Enquanto a busca encontrar arquivos
     begin
-      if (SR.Attr and faDirectory) <> faDirectory then                                            //caso o arquivo não seja um diretório
+      if (SR.Attr and faDirectory) <> faDirectory then                          //caso o arquivo não seja um diretório
         AResult.Add(ADirectory + SR.Name)                                       //Adiciono o nome do arquivo à lista de resultado
 
       else if ASub and (SR.Name <> '.') and (SR.Name <> '..') then              //caso contrário, se foi solicitado verificação de subpastas, e o arquivo encontrado não for o próprio diretório ou o diretório pai
@@ -717,6 +718,27 @@ function IsDirectory(const AFileName: string): Boolean;
 begin
   Result := (Windows.GetFileAttributes(PChar(AFileName)) and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY;
 end;
+
+//==| Função - Diretório está vazio |===========================================
+function DirectoryIsEmpty(const APath: string): Boolean;
+var
+  SR : TSearchRec;
+begin
+  Result := False;
+
+  try
+    if not Bool(FindFirst(IncludeTrailingPathDelimiter(APath) + '*.*', faAnyFile, SR)) then
+      repeat
+        if (SR.Name <> '.') and (SR.Name <> '..') then
+          Result := True;
+          Break;
+
+      until not Bool(FindNext(SR));
+  finally
+    SysUtils.FindClose(SR);
+  end;
+end;
+
 //==============================================================================
 
 end.

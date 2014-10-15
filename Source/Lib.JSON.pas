@@ -76,20 +76,21 @@ var
   cdsInfos : TClientDataSet;
   I, J : Integer;
 begin
-     jsonObj := TJSONObject.ParseJSONValue(TEncoding.ASCII.GetBytes(ArqJson),0) as TJSONObject;  // Transformo O Texto Recebido em um Objeto JSon
+//     jsonObj := System.JSON.TJSONObject(System.JSON.TJSONObject.ParseJSONValue(ArqJson) as System.JSON.TJSONObject);
+     jsonObj := System.JSON.TJSONObject.ParseJSONValue(TEncoding.ASCII.GetBytes(ArqJson),0) as System.JSON.TJSONObject;  // Transformo O Texto Recebido em um Objeto JSon
 
-     jp := System.JSON.TJSONPair.Create;                                       // Crio o Objeto Json Par
+     jp := System.JSON.TJSONPair.Create;                                        // Crio o Objeto Json Par
      jp := jsonObj.Get(0);                                                      //pega o par zero (Primeiro Retorno da String)
 
-     ja := System.JSON.TJSONArray.Create;                                      // Crio um Objeto Json Array
+     ja := System.JSON.TJSONArray.Create;                                       // Crio um Objeto Json Array
      ja := nil;                                                                 // Libero Objeto Json Array
-     ja := (jp.JsonValue as System.JSON.TJSONArray);                           // Transformo os Valores do Par 0 em um Array
+     ja := (jp.JsonValue as System.JSON.TJSONArray);                            // Transformo os Valores do Par 0 em um Array
 
-     jSubObj:= System.JSON.TJSONObject.Create;                                 // Crio um Novo Objeto JsonObject
-     jSubPar := System.JSON.TJSONPair.Create;                                  // Crio um Novo Objeto JsonPar
+     jSubObj:= System.JSON.TJSONObject.Create;                                  // Crio um Novo Objeto JsonObject
+     jSubPar := System.JSON.TJSONPair.Create;                                   // Crio um Novo Objeto JsonPar
 
      if not Assigned(cdsInfos) then
-       cdsInfos := TClientDataSet.Create(nil);                                    // Crio o Client
+       cdsInfos := TClientDataSet.Create(nil);                                  // Crio o Client
 
      cdsInfos.FieldDefs.Clear;
      for I := 0 to Length(Campos) -1 do
@@ -102,9 +103,9 @@ begin
 
      cdsInfos.CreateDataSet;
 
-      for I := 0 to ja.Size -1  do                                            // Loop para varrer todos os registros da array
+      for I := 0 to ja.Size -1  do                                              // Loop para varrer todos os registros da array
       begin
-        jSubObj := (ja.Get(i) as TJSONObject);                                // Transformo o Registro I da Array em um Objeto
+        jSubObj := (ja.Get(i) as TJSONObject);                                  // Transformo o Registro I da Array em um Objeto
 
         cdsInfos.Append;
         if Assigned(cdsInfos.FindField('transfer')) then
@@ -127,6 +128,7 @@ end;
 function StrToJSONString(const AValue: string): string;
 begin
 //  Result := TEncoding.UTF8.GetBytes('{"value":"' + AValue + '"}');
+  Result := '{"value":"' + AValue + '"}';
 end;
 
 {==| Procedimento - DbXpress para Objeto JSON |=================================
@@ -206,7 +208,7 @@ var
   JsonPair, JsonSubPair: System.JSON.TJSONPair;
   JsonArray: System.JSON.TJSONArray;
   oidx, vidx: Integer;
-  fField: TField;
+  fField, fAux: TField;
 begin
   JsonObject := System.JSON.TJSONObject.ParseJSONValue(TEncoding.ASCII.GetBytes(AJson.ToString), 0) as System.JSON.TJSONObject;
   JsonPair   := JsonObject.Get(0);
@@ -219,8 +221,15 @@ begin
     begin
       JsonSubPair := JsonSubObj.Get(oidx);
       fField := ACds.FindField(JsonSubPair.JsonString.Value);
+
       if Assigned(fField) then
-        fField.Value := JsonSubPair.JsonValue.Value;
+        fField.Value := JsonSubPair.JsonValue.Value
+      else begin
+        fAux       := TField.Create(ACds);
+        fAux.Name  := JsonSubPair.JsonString.Value;
+        fAux.Value := JsonSubPair.JsonString.Value;
+        ACds.Fields.Add(fAux);
+      end;
     end;
   end;
 end;
