@@ -193,6 +193,7 @@
         <DCCReference Include="..\Source\Lib.DB.pas"/>
         <DCCReference Include="..\Source\Lib.Files.pas"/>
         <DCCReference Include="..\Source\Lib.FTP.pas"/>
+        <DCCReference Include="..\Source\Lib.LabelM.pas"/>
         <DCCReference Include="..\Source\Lib.StrUtils.pas"/>
         <DCCReference Include="..\Source\Lib.Thread.Base.pas"/>
         <DCCReference Include="..\Source\Lib.Utils.pas"/>

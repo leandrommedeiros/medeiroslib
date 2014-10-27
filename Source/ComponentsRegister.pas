@@ -18,7 +18,7 @@ uses
   Lib.AwsS3, Lib.JSON.Doc, Lib.JSON.Parser, Lib.JSON.TreeView, Lib.REST,
   Lib.REST.Study,
   {$ENDIF}
-  Classes, LockApplication, Lib.DB, Lib.FTP, Lib.Utils.StreamFile;
+  Classes, LockApplication, Lib.DB, Lib.FTP, Lib.Utils.StreamFile, Lib.LabelM;
 
 //==| Função Registradora |=====================================================
 procedure Register;
@@ -31,6 +31,7 @@ begin
                                      TRESTConnection,
                                      TRESTStudy,
                                      {$ENDIF}
+                                     TLabelM,
                                      TLockApplication,
                                      TSQLConnectionM,
                                      TFTPConnection,

@@ -73,6 +73,7 @@ contains
   Lib.DB in '..\Source\Lib.DB.pas',
   Lib.Files in '..\Source\Lib.Files.pas',
   Lib.FTP in '..\Source\Lib.FTP.pas',
+  Lib.LabelM in '..\Source\Lib.LabelM.pas',
   Lib.StrUtils in '..\Source\Lib.StrUtils.pas',
   Lib.Thread.Base in '..\Source\Lib.Thread.Base.pas',
   Lib.Utils in '..\Source\Lib.Utils.pas',
