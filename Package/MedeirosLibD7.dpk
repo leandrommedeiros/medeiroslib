@@ -29,22 +29,7 @@ package MedeirosLib;
 {$IMPLICITBUILD ON}
 
 requires
-  {$IFDEF VER150}
   indy,
-  {$ELSE}
-  DbxCommonDriver,
-  DbxClientDriver,
-  CustomIPTransport,
-  IndySystem,
-  IndyProtocols,
-  IndyCore,
-  IndyIPClient,
-  IndyIPCommon,
-  CloudService,
-  DBXMySQLDriver,
-  DBXFirebirdDriver,
-  dsnapcon,
-  {$ENDIF}
   xmlrtl,
   rtl,
   vcl,
@@ -54,22 +39,6 @@ requires
 
 contains
   ComponentsRegister in '..\Source\ComponentsRegister.pas',
-
-  {$IFNDEF VER150}
-  Lib.AwsS3 in '..\Source\Lib.AwsS3.pas',
-  Lib.JSON.Doc in '..\Source\Lib.JSON.Doc.pas',
-  Lib.JSON.Extended in '..\Source\Lib.JSON.Extended.pas',
-  Lib.JSON.Parser in '..\Source\Lib.JSON.Parser.pas',
-  Lib.JSON in '..\Source\Lib.JSON.pas',
-  Lib.JSON.Study in '..\Source\Lib.JSON.Study.pas',
-  Lib.JSON.TreeView in '..\Source\Lib.JSON.TreeView.pas',
-  Lib.REST.Constants in '..\Source\Lib.REST.Constants.pas',
-  Lib.REST.Parameters in '..\Source\Lib.REST.Parameters.pas',
-  Lib.REST in '..\Source\Lib.REST.pas',
-  Lib.REST.Study in '..\Source\Lib.REST.Study.pas',
-  Lib.ZIP in '..\Source\Lib.ZIP.pas',
-  {$ENDIF}
-
   Lib.DB in '..\Source\Lib.DB.pas',
   Lib.Files in '..\Source\Lib.Files.pas',
   Lib.FTP in '..\Source\Lib.FTP.pas',
@@ -89,5 +58,4 @@ contains
   LockApplication in '..\Source\LockApplication.pas',
   LockApplication.Vars in '..\Source\LockApplication.Vars.pas',
   LockCadastro.Unt in '..\Source\LockCadastro.Unt.pas' {cadastro};
-
 end.

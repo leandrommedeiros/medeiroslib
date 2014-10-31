@@ -64,6 +64,8 @@ const
   function  NetworkIsFine: Boolean;
   function  WinExecAndWait(FileName:String; Visibility : integer = SW_SHOW): Variant;
   function  WinExecAndWait32(FileName: string; Visibility: integer): boolean;
+  function  ShellExecute(const APath, AFileName, AParams: string;
+    const AShowCommand: integer; const AOperation: string = 'open'): Cardinal;
   function  GetTaskBarHeight: integer;
   function  IsTaskbarAutoHideOn: Boolean;
 
@@ -71,7 +73,8 @@ implementation
 
 { Bibliotecas para Implementação }
 uses
-  Winsock, ShellAPI, SysUtils, Lib.Files;
+  Winsock, ShellAPI, SysUtils, Lib.Files, Forms;
+
 
 {*******************************************************************************
 
@@ -471,6 +474,18 @@ begin
     CloseHandle(ProcessInfo.hThread);
     Result := true;
   end;
+end;
+
+//==| Função - ShellExecute |===================================================
+function ShellExecute(const APath, AFileName, AParams: string;
+  const AShowCommand: integer; const AOperation: string = 'open'): Cardinal;
+begin
+  Result := ShellAPI.ShellExecute(Application.Handle,
+                                  PChar(AOperation),
+                                  PChar(AFileName),
+                                  PChar(AParams),
+                                  PChar(APath),
+                                  AShowCommand);
 end;
 
 //==| Função - Auto-ocultar da Barra de Tarefas Está ligado? |==================

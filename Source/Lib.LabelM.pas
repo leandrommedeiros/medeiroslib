@@ -3,7 +3,7 @@ unit Lib.LabelM;
 interface
 
 uses
-  System.SysUtils, System.Classes, Vcl.Controls, Vcl.StdCtrls;
+  SysUtils, Classes, Controls, StdCtrls;
 
 type
   TLabelMOnCaptionChange = procedure(ASender: TObject; var ANewCaption: TCaption) of object;
