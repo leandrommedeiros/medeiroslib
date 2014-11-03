@@ -91,13 +91,13 @@ ImageBase=4194304
 ExeDescription=MedeirosLib - Biblioteca de utilidades por Leandro Medeiros
 [Directories]
 OutputDir=
-UnitOutputDir=
-PackageDLLOutputDir=
-PackageDCPOutputDir=
+UnitOutputDir=$(DELPHI)\Lib
+PackageDLLOutputDir=$(DELPHI)\Projects\Bpl
+PackageDCPOutputDir=$(DELPHI)\Projects\Bpl
 SearchPath=
 Packages=vcl;rtl;vclx;indy;vclie;xmlrtl;inetdbbde;inet;inetdbxpress;dbrtl;soaprtl;dsnap;VclSmp;dbexpress;vcldb;dbxcds;inetdb;bdertl;vcldbx;adortl;teeui;teedb;tee;ibxpress;visualclx;visualdbclx;vclactnband;vclshlctrls;IntrawebDB_50_70;Intraweb_50_70;dclOfficeXP
 Conditionals=DEBUG
-DebugSourceDirs=
+DebugSourceDirs=..\Source
 UsePackages=0
 [Parameters]
 RunParams=
@@ -110,10 +110,10 @@ ActiveLang=
 ProjectLang=
 RootDir=D:\Programs\Delphi7\Bin\
 [Version Info]
-IncludeVerInfo=0
+IncludeVerInfo=1
 AutoIncBuild=0
-MajorVer=1
-MinorVer=0
+MajorVer=14
+MinorVer=11
 Release=0
 Build=0
 Debug=0
@@ -124,13 +124,31 @@ DLL=0
 Locale=1046
 CodePage=1252
 [Version Info Keys]
-CompanyName=
+CompanyName=MSD™ - Medeiros Software Development
 FileDescription=
-FileVersion=1.0.0.0
-InternalName=
-LegalCopyright=
+FileVersion=14.11.0.0
+InternalName=MedeirosLib
+LegalCopyright=MSD MedeirosLib™
 LegalTrademarks=
 OriginalFilename=
 ProductName=
 ProductVersion=1.0.0.0
 Comments=
+[HistoryLists\hlDebugSourcePath]
+Count=1
+Item0=..\Source
+[HistoryLists\hlConditionals]
+Count=1
+Item0=DEBUG
+[HistoryLists\hlUnitAliases]
+Count=1
+Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;
+[HistoryLists\hlUnitOutputDirectory]
+Count=1
+Item0=$(DELPHI)\Lib
+[HistoryLists\hlBPLOutput]
+Count=1
+Item0=$(DELPHI)\Projects\Bpl
+[HistoryLists\hlDCPOutput]
+Count=1
+Item0=$(DELPHI)\Projects\Bpl

@@ -722,17 +722,20 @@ end;
 //==| Função - Diretório está vazio |===========================================
 function DirectoryIsEmpty(const APath: string): Boolean;
 var
-  SR : TSearchRec;
+  SR   : TSearchRec;
+  sDir : string;
 begin
-  Result := False;
+  Result := True;
+  sDir   := IncludeTrailingPathDelimiter(APath) + '*.*';
 
   try
-    if not Bool(FindFirst(IncludeTrailingPathDelimiter(APath) + '*.*', faAnyFile, SR)) then
+    if not Bool(FindFirst(sDir, faAnyFile, SR)) then
       repeat
         if (SR.Name <> '.') and (SR.Name <> '..') then
-          Result := True;
+        begin
+          Result := False;
           Break;
-
+        end;
       until not Bool(FindNext(SR));
   finally
     SysUtils.FindClose(SR);

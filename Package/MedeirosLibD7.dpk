@@ -1,7 +1,6 @@
 package MedeirosLib;
 
 {$R *.res}
-{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
@@ -23,10 +22,9 @@ package MedeirosLib;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DEFINE DEBUG}
-{$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'MedeirosLib - Biblioteca de utilidades por Leandro Medeiros'}
 {$IMPLICITBUILD ON}
+{$DEFINE DEBUG}
 
 requires
   indy,
@@ -58,4 +56,5 @@ contains
   LockApplication in '..\Source\LockApplication.pas',
   LockApplication.Vars in '..\Source\LockApplication.Vars.pas',
   LockCadastro.Unt in '..\Source\LockCadastro.Unt.pas' {cadastro};
+
 end.

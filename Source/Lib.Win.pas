@@ -304,7 +304,7 @@ end;
 function GetComputerAndUserName: string;
 var
   sComputerName,
-  sUserName : array [0 .. 255] of char;
+  sUserName : array [0..255] of char;
   dwSize    : DWORD;
 begin
   dwSize := SizeOf(sComputerName);
