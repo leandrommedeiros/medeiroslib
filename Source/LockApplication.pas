@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, LockApplication.Vars, LockApplication.Interfaces,
   LockApplication.Func, inifiles, LockApplication.Controle, ExtCtrls,
-  LockApplication.Email, Wininet, LockCadastro.Unt;
+  LockApplication.Email, Wininet, LockApplication.Cadastro.Unt;
 
 
 type

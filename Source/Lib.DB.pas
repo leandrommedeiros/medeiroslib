@@ -236,7 +236,7 @@ begin
       Self.FDataSetProvider.Name    := DSP_NAME;                                //e nomeio o objeto
       Self.FDataSetProvider.DataSet := Self.FSQLDataSet;                       	//amarro o TSQLDataSet
 
-      ACds.ProviderName  	     := DSP_NAME;                                     //e amarro o Provedor de dados dinâmico.
+      ACds.ProviderName  	    := DSP_NAME;                                      //e amarro o Provedor de dados dinâmico.
 
       Self.FSQLDataSet.Active := True;                                    		  //Finalmente ativo o SQLDataSet executando a busca
 

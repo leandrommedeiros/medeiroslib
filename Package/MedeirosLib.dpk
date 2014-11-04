@@ -48,6 +48,10 @@ requires
 contains
   ComponentsRegister in '..\Source\ComponentsRegister.pas',
   Lib.AwsS3 in '..\Source\Lib.AwsS3.pas',
+  Lib.DB in '..\Source\Lib.DB.pas',
+  Lib.Files in '..\Source\Lib.Files.pas',
+  Lib.FTP in '..\Source\Lib.FTP.pas',
+  Lib.MLLabel in '..\Source\Lib.MLLabel.pas',
   Lib.JSON.Doc in '..\Source\Lib.JSON.Doc.pas',
   Lib.JSON.Extended in '..\Source\Lib.JSON.Extended.pas',
   Lib.JSON.Parser in '..\Source\Lib.JSON.Parser.pas',
@@ -58,11 +62,6 @@ contains
   Lib.REST.Parameters in '..\Source\Lib.REST.Parameters.pas',
   Lib.REST in '..\Source\Lib.REST.pas',
   Lib.REST.Study in '..\Source\Lib.REST.Study.pas',
-  Lib.ZIP in '..\Source\Lib.ZIP.pas',
-  Lib.DB in '..\Source\Lib.DB.pas',
-  Lib.Files in '..\Source\Lib.Files.pas',
-  Lib.FTP in '..\Source\Lib.FTP.pas',
-  Lib.LabelM in '..\Source\Lib.LabelM.pas',
   Lib.StrUtils in '..\Source\Lib.StrUtils.pas',
   Lib.Thread.Base in '..\Source\Lib.Thread.Base.pas',
   Lib.Utils in '..\Source\Lib.Utils.pas',
@@ -70,6 +69,7 @@ contains
   Lib.Utils.StreamFile in '..\Source\Lib.Utils.StreamFile.pas',
   Lib.Utils.AssociativeArray in '..\Source\Lib.Utils.AssociativeArray.pas',
   Lib.Win in '..\Source\Lib.Win.pas',
+  Lib.ZIP in '..\Source\Lib.ZIP.pas',
   LockApplication.Controle in '..\Source\LockApplication.Controle.pas',
   LockApplication.Email in '..\Source\LockApplication.Email.pas',
   LockApplication.Email.Status in '..\Source\LockApplication.Email.Status.pas' {StatusEmail},
@@ -77,6 +77,6 @@ contains
   LockApplication.Interfaces in '..\Source\LockApplication.Interfaces.pas' {Bloqueio},
   LockApplication in '..\Source\LockApplication.pas',
   LockApplication.Vars in '..\Source\LockApplication.Vars.pas',
-  LockCadastro.Unt in '..\Source\LockCadastro.Unt.pas' {cadastro};
+  LockApplication.Cadastro.Unt in '..\Source\LockApplication.Cadastro.Unt.pas' {cadastro};
 
 end.

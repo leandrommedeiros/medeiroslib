@@ -176,6 +176,10 @@
         <DCCReference Include="CloudService.dcp"/>
         <DCCReference Include="..\Source\ComponentsRegister.pas"/>
         <DCCReference Include="..\Source\Lib.AwsS3.pas"/>
+        <DCCReference Include="..\Source\Lib.DB.pas"/>
+        <DCCReference Include="..\Source\Lib.Files.pas"/>
+        <DCCReference Include="..\Source\Lib.FTP.pas"/>
+        <DCCReference Include="..\Source\Lib.MLLabel.pas"/>
         <DCCReference Include="..\Source\Lib.JSON.Doc.pas"/>
         <DCCReference Include="..\Source\Lib.JSON.Extended.pas"/>
         <DCCReference Include="..\Source\Lib.JSON.Parser.pas"/>
@@ -186,11 +190,6 @@
         <DCCReference Include="..\Source\Lib.REST.Parameters.pas"/>
         <DCCReference Include="..\Source\Lib.REST.pas"/>
         <DCCReference Include="..\Source\Lib.REST.Study.pas"/>
-        <DCCReference Include="..\Source\Lib.ZIP.pas"/>
-        <DCCReference Include="..\Source\Lib.DB.pas"/>
-        <DCCReference Include="..\Source\Lib.Files.pas"/>
-        <DCCReference Include="..\Source\Lib.FTP.pas"/>
-        <DCCReference Include="..\Source\Lib.LabelM.pas"/>
         <DCCReference Include="..\Source\Lib.StrUtils.pas"/>
         <DCCReference Include="..\Source\Lib.Thread.Base.pas"/>
         <DCCReference Include="..\Source\Lib.Utils.pas"/>
@@ -198,6 +197,7 @@
         <DCCReference Include="..\Source\Lib.Utils.StreamFile.pas"/>
         <DCCReference Include="..\Source\Lib.Utils.AssociativeArray.pas"/>
         <DCCReference Include="..\Source\Lib.Win.pas"/>
+        <DCCReference Include="..\Source\Lib.ZIP.pas"/>
         <DCCReference Include="..\Source\LockApplication.Controle.pas"/>
         <DCCReference Include="..\Source\LockApplication.Email.pas"/>
         <DCCReference Include="..\Source\LockApplication.Email.Status.pas">
@@ -209,7 +209,7 @@
         </DCCReference>
         <DCCReference Include="..\Source\LockApplication.pas"/>
         <DCCReference Include="..\Source\LockApplication.Vars.pas"/>
-        <DCCReference Include="..\Source\LockCadastro.Unt.pas">
+        <DCCReference Include="..\Source\LockApplication.Cadastro.Unt.pas">
             <Form>cadastro</Form>
         </DCCReference>
         <BuildConfiguration Include="Release">
