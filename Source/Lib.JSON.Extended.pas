@@ -666,6 +666,7 @@ type
     function AddPair(const Str: string; const Val: Real): TJSONExtended; overload;
     function AddPair(const Str: string; const Val: Boolean): TJSONExtended; overload;
     function AddPair(const Str: string; const Val: TDateTime): TJSONExtended; overload;
+    function AddPair(const Str: string; const Val: TDate): TJSONExtended; overload;
     function IsSet(const APropertyName: string): Boolean;
     function GetStr(const APropertyName: string; const ADefaultValue: string = ''): string;
     function GetInt(const APropertyName: string; const ADefaultValue: integer = 0): integer;
@@ -2812,6 +2813,13 @@ function TJSONExtended.AddPair(const Str: string;
   const Val: TDateTime): TJSONExtended;
 begin
   Result := TJSONExtended(Self.AddPair(Str, DateTimeToStr(Val)));
+end;
+
+//==| Adiciona Par (Data e Hora) |==============================================
+function TJSONExtended.AddPair(const Str: string;
+  const Val: TDate): TJSONExtended;
+begin
+  Result := TJSONExtended(Self.AddPair(Str, DateToStr(Val)));
 end;
 
 //==| Função - Possui Valor |===================================================

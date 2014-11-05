@@ -27,6 +27,7 @@ type
     FPatientID          : integer;
     FPatientPID         : string;
     FPatientName        : string;
+    FPatientBirthDate   : TDate;
     FExam               : string;
     FDicomSituationID   : integer;
     FDicomSituation     : string;
@@ -71,6 +72,7 @@ type
     property Situation        : String    read FSituation          write FSituation;
     property PatientID        : Integer   read FPatientID          write FPatientID;
     property PatientPID       : String    read FPatientPID         write SetPatientPID;
+    property PatientBirthDate : TDate     read FPatientBirthDate   write FPatientBirthDate;
     property PatientName      : String    read FPatientName        write SetPatientName;
     property ExamDescription  : String    read FExam               write SetExamDescription;
     property DicomSituationID : Integer   read FDicomSituationID   write SetDicomSituationID;
@@ -208,6 +210,7 @@ begin
   Self.PatientID        := AStudy.GetInt('patientId');
   Self.PatientPID       := AStudy.GetStr('pPID');
   Self.PatientName      := AStudy.GetStr('patientName');
+  Self.PatientBirthDate := AStudy.GetDate('patientBirthDate');
   if Self.PatientName = EmptyStr then
     Self.PatientName := AStudy.GetStr('patient');
   Self.ExamDescription  := AStudy.GetStr('exam');
@@ -245,6 +248,7 @@ begin
   Result.AddPair('patientId',           Self.PatientID);
   Result.AddPair('pPID',                Self.PatientPID);
   Result.AddPair('patientName',         Self.PatientName);
+  Result.AddPair('patientBirthDate',    Self.PatientBirthDate);
   Result.AddPair('exam',                Self.ExamDescription);
   Result.AddPair('dicomSituationId',    Self.DicomSituationID);
   Result.AddPair('dicomImg',            Self.DicomSituation);
