@@ -171,8 +171,14 @@ begin
   end;
 
   for idx := 0 to ACds.Fields.Count - 1 do
-    Result.AddPair(ACds.Fields[idx].FieldName,
-                   ifthen(ACds.Fields[idx].IsNull, JSON_NULL_VALUE, ACds.Fields[idx].AsString));
+    try
+      Result.AddPair(ACds.Fields[idx].FieldName,
+                     ifthen(ACds.Fields[idx].IsNull,
+                            JSON_NULL_VALUE,
+                            ACds.Fields[idx].AsString));
+    except
+      //
+    end;
 end;
 
 {==| Função - DbXpress para Matriz JSON |=======================================
