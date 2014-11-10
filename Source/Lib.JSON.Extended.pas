@@ -675,6 +675,7 @@ type
     function GetDtTime(const APropertyName: string; const ADefaultValue: TDateTime = 0): TDateTime;
     function GetDate(const APropertyName: string; const ADefaultValue: TDate = 0): TDate;
     function GetTime(const APropertyName: string; const ADefaultValue: TDateTime = 0): TDateTime;
+    function GetArray(const APropertyName: string): TJSONArray;
   end;
 {*********************************************** Desenvolvido em 16/07/2014 ***}
 
@@ -2915,9 +2916,19 @@ begin
   else if ADefaultValue <> 0 then Result := ADefaultValue;
 end;
 
+//==| Função - Obter Matriz |===================================================
+function TJSONExtended.GetArray(const APropertyName: string): TJSONArray;
+begin
+  if not Self.IsSet(APropertyName) then
+    Result := TJSONArray.Create
+  else
+    Result := (Self.Get(APropertyName).JsonValue as TJSONArray);
+end;
 //==============================================================| 16/07/2014 |==
 
+{ Inicialização }
 initialization
   JSONFormatSettings := TFormatSettings.Create;
   JSONFormatSettings.DecimalSeparator := '.';
+
 end.
