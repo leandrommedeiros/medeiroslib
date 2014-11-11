@@ -212,6 +212,7 @@
         <DCCReference Include="..\Source\LockApplication.Cadastro.Unt.pas">
             <Form>cadastro</Form>
         </DCCReference>
+        <DCCReference Include="..\Source\Lib.Base64.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

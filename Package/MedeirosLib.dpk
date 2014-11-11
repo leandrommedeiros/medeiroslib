@@ -77,6 +77,7 @@ contains
   LockApplication.Interfaces in '..\Source\LockApplication.Interfaces.pas' {Bloqueio},
   LockApplication in '..\Source\LockApplication.pas',
   LockApplication.Vars in '..\Source\LockApplication.Vars.pas',
-  LockApplication.Cadastro.Unt in '..\Source\LockApplication.Cadastro.Unt.pas' {cadastro};
+  LockApplication.Cadastro.Unt in '..\Source\LockApplication.Cadastro.Unt.pas' {cadastro},
+  Lib.Base64 in '..\Source\Lib.Base64.pas';
 
 end.
