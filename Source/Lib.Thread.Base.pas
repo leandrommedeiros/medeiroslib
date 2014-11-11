@@ -65,8 +65,6 @@ procedure TThreadBase.Execute;
 var
   iSleeps : integer;
 begin
-  Lib.Files.Log(LOG_MAIN_ROUTINE_START, [Self.Name]);
-
   while not Self.Terminated and Self.MainRoutine do                             //Enquanto a Thread não é finalizada externa/internamente
   begin
     Lib.Files.Log(LOG_MAIN_ROUTINE_END, [Self.Name]);
@@ -81,6 +79,8 @@ begin
       {$ENDIF}
       System.Inc(iSleeps);                                                      //e incremento o contador de tempo de espera
     end;
+
+    Lib.Files.Log(LOG_MAIN_ROUTINE_START, [Self.Name]);
   end;
 
   Self.ReturnValue := Self.FReturnValue;                                        //quando a Thread é finalizada, retorno valor predefinido para saber que não houve erros

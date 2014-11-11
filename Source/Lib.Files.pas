@@ -469,10 +469,10 @@ begin
 
   try
     WriteLn(ErrorFile, ' ');
-    WriteLn(ErrorFile, '===================');
+    WriteLn(ErrorFile, '#=======================================================#');
     if ANameByDate then WriteLn(ErrorFile, Application.Title + ' - ' + TimeToStr(Now))
     else                WriteLn(ErrorFile, DateTimeToStr(Now));
-    WriteLn(ErrorFile, '===================');
+    WriteLn(ErrorFile, '#=======================================================#');
     WriteLn(ErrorFile, '-> ' + AText);
   finally
     CloseFile(ErrorFile)
