@@ -48,7 +48,8 @@ type
   function GetLargestFile(sFileList: TStringList): string;
   function  StrToFileStream(Str: String): TFileStream;
   procedure FileLog(const AText: string; const ANameByDate: Boolean = True);
-  procedure Log(const AText: string; const ANameByDate: Boolean = True);
+  procedure Log(const AFormat: string; const Args: array of const; const ANameByDate: Boolean = True); overload;
+  procedure Log(const AText: string; const ANameByDate: Boolean = True); overload;
   function  WorkingDir: string;
   function  CreatePublicFile(const AFileName: string): Boolean; overload;
   function  CreatePublicFile(const AFileName: string; var AStream: TFileStream): Boolean; overload;
@@ -431,6 +432,13 @@ begin
 
   Result := TFileStream.Create(sTempFile, fmShareDenyNone);                     //Crio um arquivo dinâmico a partir do arquivo temporário com permissões totais de compartilhamento e passo como resultado da função
   SysUtils.DeleteFile(sTempFile);                                               //Excluo o arquivo temporário
+end;
+
+//==| Procedimento - Log Formatado |============================================
+procedure Log(const AFormat: string; const Args: array of const;
+  const ANameByDate: Boolean = True);
+begin
+  Lib.Files.Log(SysUtils.Format(AFormat, Args), ANameByDate);
 end;
 
 {==| Procedimento - Log em Arquivo |============================================

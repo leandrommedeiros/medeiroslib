@@ -13,8 +13,12 @@ uses
 
 { Constantes }
 const
-  SLEEP_TIME = 100; //(milisegundos)
-  ONE_MINUTE = 600;
+  SLEEP_TIME             = 100; //(milisegundos)
+  ONE_MINUTE             = 600;
+  LOG_THREAD_START       = 'Thread "%s" - Instânciada.';
+  LOG_THREAD_END         = 'Thread "%s" - Finalizando.';
+  LOG_MAIN_ROUTINE_START = 'Thread "%s" - Início da Rotina Principal.';
+  LOG_MAIN_ROUTINE_END   = 'Thread "%s" - Fim da Rotina Principal, entrando em descanço.';
 
 { Classes }
 type
@@ -24,6 +28,7 @@ type
     FLoopRepeat   : integer;
     FSleepingTime : real;
     FReturnValue  : Cardinal;
+    FName         : String;
 
     procedure Execute; override;
     procedure SetSleepingTime(const ASleepingTime: Real);
@@ -38,14 +43,15 @@ type
   protected
     function MainRoutine : Boolean; virtual; abstract;
 
-    property SleepingTime : real read FSleepingTime write SetSleepingTime;
+    property SleepingTime : real   read FSleepingTime write SetSleepingTime;
+    property Name         : String read FName         write FName;
   end;
 
 implementation
 
 { Bibliotecas para implementação }
 uses
-  SysUtils;
+  SysUtils, Lib.Files;
 
 
 {*******************************************************************************
@@ -59,8 +65,12 @@ procedure TThreadBase.Execute;
 var
   iSleeps : integer;
 begin
+  Lib.Files.Log(LOG_MAIN_ROUTINE_START, [Self.Name]);
+
   while not Self.Terminated and Self.MainRoutine do                             //Enquanto a Thread não é finalizada externa/internamente
   begin
+    Lib.Files.Log(LOG_MAIN_ROUTINE_END, [Self.Name]);
+
     iSleeps := 0;                                                               //zero o contador de tempo de espera
     While (iSleeps < Self.FLoopRepeat) and (not Terminated) do                  //e enquanto o tempo de espera não for igual ao intervalo configurado, e a Thread não for finalizada
     begin
@@ -100,11 +110,16 @@ begin
 
   Self.SleepingTime := ASleepingTime;
   Self.FReturnValue := System.Round(Now);
+
+  Self.NameThreadForDebugging(Self.Name);
+  Lib.Files.Log(LOG_THREAD_START, [Self.Name]);
 end;
 
 //==| Método de Classe - Parar Thread |=========================================
 function TThreadBase.Finish: Boolean;
 begin
+  Lib.Files.Log(LOG_THREAD_END, [Self.Name]);
+
   Result := Assigned(Self);                                                     //Verifico se a Thread está mesmo rodando
 
   if Result then                                                                //Caso esteja
