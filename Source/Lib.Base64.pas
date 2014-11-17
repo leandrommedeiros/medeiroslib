@@ -16,7 +16,7 @@ implementation
 
 { Bibliotecas para Implementação }
 uses
-  IdCoderMIME, System.SysUtils;
+  IdCoderMIME, SysUtils;
 
 //==| Codificar |===============================================================
 function Encode(const AContent: string): string;

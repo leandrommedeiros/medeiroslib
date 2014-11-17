@@ -111,7 +111,10 @@ begin
   Self.SleepingTime := ASleepingTime;
   Self.FReturnValue := System.Round(Now);
 
+  {$IFNDEF VER150}
   Self.NameThreadForDebugging(Self.Name);
+  {$ENDIF}
+
   Lib.Files.Log(LOG_THREAD_START, [Self.Name]);
 end;
 

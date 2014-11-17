@@ -33,7 +33,7 @@ type
 implementation
 
 uses
-  Vcl.Graphics;
+  Graphics;
 
 function TMLLabel.GetCaption: TCaption;
 begin

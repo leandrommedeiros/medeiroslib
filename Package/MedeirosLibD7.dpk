@@ -37,10 +37,11 @@ requires
 
 contains
   ComponentsRegister in '..\Source\ComponentsRegister.pas',
+  Lib.Base64 in '..\Source\Lib.Base64.pas',
   Lib.DB in '..\Source\Lib.DB.pas',
   Lib.Files in '..\Source\Lib.Files.pas',
   Lib.FTP in '..\Source\Lib.FTP.pas',
-  Lib.LabelM in '..\Source\Lib.LabelM.pas',
+  Lib.MLLabel in '..\Source\Lib.MLLabel.pas',
   Lib.StrUtils in '..\Source\Lib.StrUtils.pas',
   Lib.Thread.Base in '..\Source\Lib.Thread.Base.pas',
   Lib.Utils in '..\Source\Lib.Utils.pas',
@@ -55,6 +56,6 @@ contains
   LockApplication.Interfaces in '..\Source\LockApplication.Interfaces.pas' {Bloqueio},
   LockApplication in '..\Source\LockApplication.pas',
   LockApplication.Vars in '..\Source\LockApplication.Vars.pas',
-  LockCadastro.Unt in '..\Source\LockCadastro.Unt.pas' {cadastro};
+  LockApplication.Cadastro.Unt in '..\Source\LockApplication.Cadastro.Unt.pas' {cadastro};
 
 end.
