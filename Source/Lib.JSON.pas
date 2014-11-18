@@ -142,14 +142,32 @@ end;
 procedure RecordToJSON(var ACds: TClientDataSet; var AJSON: System.JSON.TJSONObject;
   const FlagReinstance: Boolean = True);
 var
-  idx : integer;
+  idx  : integer;
+  sAux : string;
 begin
-  if FlagReinstance then AJSON := System.JSON.TJSONObject.Create;
-  for idx := 0 to ACds.Fields.Count - 1 do
-    AJSON.AddPair(ACds.Fields[idx].FieldName,
-                  ifthen(ACds.Fields[idx].IsNull,
-                         JSON_NULL_VALUE,
-                         ACds.Fields[idx].AsString));
+  if FlagReinstance then
+    AJSON := RecordToJSON(ACds)
+
+  else if ACds.IsEmpty then
+  begin
+    AJSON.AddPair('error', JSON_ERROR_VALUE);
+    Exit;
+  end
+
+  else begin
+    for idx := 0 to ACds.Fields.Count - 1 do
+    begin
+      try
+        sAux := ifthen(ACds.Fields[idx].IsNull or (ACds.Fields[idx].AsString = EmptyStr),
+                       JSON_NULL_VALUE,
+                       ACds.Fields[idx].AsString);
+      except
+        sAux := JSON_NULL_VALUE;
+      end;
+
+      AJSON.AddPair(ACds.Fields[idx].FieldName, sAux);
+    end;
+  end;
 end;
 
 {==| Função - DbXpress para Objeto JSON |=======================================
@@ -161,9 +179,11 @@ end;
 ============================================| Leandro Medeiros (19/12/2012) |==}
 function RecordToJSON(var ACds: TClientDataSet): System.JSON.TJSONObject;
 var
-  idx : integer;
+  idx  : integer;
+  sAux : string;
 begin
   Result := System.JSON.TJSONObject.Create;
+
   if ACds.IsEmpty then
   begin
     Result.AddPair('error', JSON_ERROR_VALUE);
@@ -171,14 +191,17 @@ begin
   end;
 
   for idx := 0 to ACds.Fields.Count - 1 do
+  begin
     try
-      Result.AddPair(ACds.Fields[idx].FieldName,
-                     ifthen(ACds.Fields[idx].IsNull,
-                            JSON_NULL_VALUE,
-                            ACds.Fields[idx].AsString));
+      sAux := ifthen(ACds.Fields[idx].IsNull,
+                     JSON_NULL_VALUE,
+                     ACds.Fields[idx].AsString);
     except
-      //
+      sAux := JSON_NULL_VALUE;
     end;
+
+    if sAux <> EmptyStr then Result.AddPair(ACds.Fields[idx].FieldName, sAux);
+  end;
 end;
 
 {==| Função - DbXpress para Matriz JSON |=======================================

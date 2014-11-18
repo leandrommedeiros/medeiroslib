@@ -2879,12 +2879,16 @@ var
   sAux       : string;
   Formatting : TFormatSettings;
 begin
+  Result     := ADefaultValue;
   Formatting := TFormatSettings.Create('pt-br');                                //Pode Ser 1046 também
 
   sAux := Self.GetStr(APropertyName);
-  if sAux <> EmptyStr then        Result := StrToDateTime(sAux, Formatting)
-  else if ADefaultValue <> 0 then Result := ADefaultValue
-  else                            Result := Now;
+  if sAux <> EmptyStr then
+    try
+      Result := System.SysUtils.StrToDateTime(sAux, Formatting)
+    except
+      //Não há o que tratar
+    end
 end;
 
 //==| Função - Obter Data |=====================================================
@@ -2894,12 +2898,16 @@ var
   sAux : string;
   Formatting : TFormatSettings;
 begin
+  Result     := ADefaultValue;
   Formatting := TFormatSettings.Create('pt-br');                                //Pode Ser 1046 também
 
   sAux := Self.GetStr(APropertyName);
-  if sAux <> EmptyStr then        Result := StrToDate(sAux, Formatting)
-  else if ADefaultValue <> 0 then Result := ADefaultValue
-  else                            Result := Date();
+  if sAux <> EmptyStr then
+    try
+      Result := System.SysUtils.StrToDate(sAux, Formatting)
+    except
+      //Não há o que tratar
+    end
 end;
 
 //==| Função - Obter Hora |=====================================================
@@ -2909,11 +2917,16 @@ var
   sAux       : string;
   Formatting : TFormatSettings;
 begin
+  Result     := ADefaultValue;
   Formatting := TFormatSettings.Create('pt-br');                                //Pode Ser 1046 também
 
   sAux := Self.GetStr(APropertyName);
-  if sAux <> EmptyStr then        Result := StrToTime(sAux, Formatting)
-  else if ADefaultValue <> 0 then Result := ADefaultValue;
+  if sAux <> EmptyStr then
+    try
+      Result := System.SysUtils.StrToTime(sAux, Formatting)
+    except
+      //Não há o que tratar
+    end
 end;
 
 //==| Função - Obter Matriz |===================================================
