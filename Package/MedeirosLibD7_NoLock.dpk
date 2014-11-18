@@ -1,0 +1,53 @@
+package MedeirosLibD7_NoLock;
+
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'MedeirosLib - Biblioteca de utilidades por Leandro Medeiros'}
+{$IMPLICITBUILD ON}
+{$DEFINE DEBUG}
+
+requires
+  indy,
+  xmlrtl,
+  rtl,
+  vcl,
+  dbrtl,
+  dbexpress,
+  dsnap;
+
+contains
+  ComponentsRegister in '..\Source\ComponentsRegister.pas',
+  Lib.Base64 in '..\Source\Lib.Base64.pas',
+  Lib.DB in '..\Source\Lib.DB.pas',
+  Lib.Files in '..\Source\Lib.Files.pas',
+  Lib.FTP in '..\Source\Lib.FTP.pas',
+  Lib.MLLabel in '..\Source\Lib.MLLabel.pas',
+  Lib.StrUtils in '..\Source\Lib.StrUtils.pas',
+  Lib.Thread.Base in '..\Source\Lib.Thread.Base.pas',
+  Lib.Utils in '..\Source\Lib.Utils.pas',
+  Lib.Utils.BrowseFolder in '..\Source\Lib.Utils.BrowseFolder.pas',
+  Lib.Utils.StreamFile in '..\Source\Lib.Utils.StreamFile.pas',
+  Lib.Utils.AssociativeArray in '..\Source\Lib.Utils.AssociativeArray.pas',
+  Lib.Win in '..\Source\Lib.Win.pas';
+
+end.

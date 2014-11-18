@@ -169,8 +169,6 @@
     <Transaction>2014/11/11 11:37:16.000.719,D:\Projects\MedeirosLib\Source\Lib.Base64.pas=D:\Projects\MedeirosLib\Package\Unit1.pas</Transaction>
   </Transactions>
 	<ProjectSortOrder AutoSort="0" SortType="0">
-    <File Path="..\..\MedeirosLib"/>
-    <File Path="..\Source"/>
     <File Path="..\Source\ComponentsRegister.pas"/>
     <File Path="..\Source\Lib.AwsS3.pas"/>
     <File Path="..\Source\Lib.Base64.pas"/>

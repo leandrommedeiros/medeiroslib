@@ -21,7 +21,7 @@ type
     FRefresh  : Boolean;
 
     //Variáveis
-    DataStream: TMemoryStream;
+    DataStream : TMemoryStream;
   protected
     //Métodos Protegidos
     procedure SetFileName(AFileName: String);
@@ -77,6 +77,7 @@ var
 begin
   sAux           := Self.FileName;
   Self.FFileName := EmptyStr;
+  Self.FRefresh  := AValue;
   Self.FileName  := sAux;
 end;
 
@@ -93,9 +94,13 @@ begin
   begin
     Self.DataStream.LoadFromFile(AFileName);
 
-    Dialogs.ShowMessage(Self.Name
-                       + ': ' + Lib.Files.BytesToMega(Self.Data.Size)
-                       + ' carregados');
+    if Self.FRefresh then
+    begin
+      Dialogs.ShowMessage(Self.Name
+                         + ': ' + Lib.Files.BytesToMega(Self.Data.Size)
+                         + ' carregados');
+      Self.FRefresh := False;
+    end;
   end;
 end;
 
