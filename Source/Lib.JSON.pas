@@ -148,25 +148,28 @@ begin
   if FlagReinstance then
     AJSON := RecordToJSON(ACds)
 
-  else if ACds.IsEmpty then
+  else  if ACds.IsEmpty then
   begin
     AJSON.AddPair('error', JSON_ERROR_VALUE);
     Exit;
-  end
+  end;
 
-  else begin
-    for idx := 0 to ACds.Fields.Count - 1 do
-    begin
-      try
+  for idx := 0 to ACds.Fields.Count - 1 do
+  begin
+    try
+      if ACds.Fields[idx].DataType in [ftDate, ftTime, ftDateTime] then
         sAux := ifthen(ACds.Fields[idx].IsNull or (ACds.Fields[idx].AsString = EmptyStr),
                        JSON_NULL_VALUE,
+                       ACds.Fields[idx].AsString)
+      else
+        sAux := ifthen(ACds.Fields[idx].IsNull,
+                       JSON_NULL_VALUE,
                        ACds.Fields[idx].AsString);
-      except
-        sAux := JSON_NULL_VALUE;
-      end;
-
-      AJSON.AddPair(ACds.Fields[idx].FieldName, sAux);
+    except
+      sAux := JSON_NULL_VALUE;
     end;
+
+    if sAux <> EmptyStr then AJSON.AddPair(ACds.Fields[idx].FieldName, sAux);
   end;
 end;
 
@@ -193,9 +196,14 @@ begin
   for idx := 0 to ACds.Fields.Count - 1 do
   begin
     try
-      sAux := ifthen(ACds.Fields[idx].IsNull,
-                     JSON_NULL_VALUE,
-                     ACds.Fields[idx].AsString);
+      if ACds.Fields[idx].DataType in [ftDate, ftTime, ftDateTime] then
+        sAux := ifthen(ACds.Fields[idx].IsNull or (ACds.Fields[idx].AsString = EmptyStr),
+                       JSON_NULL_VALUE,
+                       ACds.Fields[idx].AsString)
+      else
+        sAux := ifthen(ACds.Fields[idx].IsNull,
+                       JSON_NULL_VALUE,
+                       ACds.Fields[idx].AsString);
     except
       sAux := JSON_NULL_VALUE;
     end;
