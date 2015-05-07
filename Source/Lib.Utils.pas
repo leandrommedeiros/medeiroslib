@@ -11,11 +11,11 @@ interface
 { Bibliotecas para Interface }
 uses
 { Para função XlsToStringGrid }
-  ComObj, Grids,
+  ComObj, Vcl.Grids,
 
 { Bibliotecas básicas }
-  Controls, Dialogs, Classes, StdCtrls, Forms, StrUtils, SysUtils, ComCtrls,
-  Types, Windows, Variants, Lib.StrUtils;
+  Vcl.Controls, Vcl.Dialogs, Classes, Vcl.StdCtrls, FMX.Forms, StrUtils, SysUtils, Vcl.ComCtrls,
+  Types, Windows, Variants, Lib.StrUtils, Vcl.Forms;
 
 { Protótipos das Funções e Procedimentos }
   function  Mensagem(sMensagem: string; sTitulo: string = '';

@@ -160,7 +160,6 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="DBXMySQLDriver.dcp"/>
-        <DCCReference Include="DBXFirebirdDriver.dcp"/>
         <DCCReference Include="xmlrtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
         <DCCReference Include="DbxClientDriver.dcp"/>

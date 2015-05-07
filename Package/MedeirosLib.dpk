@@ -30,7 +30,6 @@ package MedeirosLib;
 
 requires
   DBXMySQLDriver,
-  DBXFirebirdDriver,
   xmlrtl,
   vcl,
   DbxClientDriver,

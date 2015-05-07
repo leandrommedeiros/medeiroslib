@@ -10,7 +10,7 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  Classes, SysUtils, Controls, Lib.Files;
+  Classes, SysUtils, Vcl.Controls, Lib.Files;
 
 const
 { Declarações de Constantes - Agrupamento de tipos de caracteres }

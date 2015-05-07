@@ -10,7 +10,7 @@ interface
 
 { Bibliotecas para Interface }
 uses
-  Classes, SysUtils, Forms;
+  Classes, SysUtils, Vcl.Forms;
 
 { Constantes }
 const
