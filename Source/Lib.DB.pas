@@ -19,8 +19,10 @@ uses
 const
   CONN_NAME_FB    = 'FBConnection';
   CONN_NAME_MYSQL = 'MySQLConnection';
+  CONN_NAME_IB    = 'IBConnection';
   DRV_FB          = 'Firebird';
   DRV_MYSQL       = 'MySQL';
+  DRV_IB          = 'Interbase';
 
 { Classes }
 type
@@ -77,6 +79,8 @@ type
   function  NewMySQLConn(const AHost: string; const APort: integer;
     const ADBName, AUser, APasswd: string): TSQLConnectionM;
   function  NewFirebirdConn(const AHost: string; const APort: integer;
+    const ADBFile, AUser, APassword: string): TSQLConnectionM;
+  function  NewInterbaseConn(const AHost: string; const APort: integer;
     const ADBFile, AUser, APassword: string): TSQLConnectionM;
 
 { Protótipos - Apenas para Delphi 7 }
@@ -883,6 +887,55 @@ begin
       Lib.Files.Log('Falha de conexão ao banco de dados: ' + e.Message);
   end;
 
+  Result.Connected := False;
+end;
+
+//==| Criar Nova Conexão com o Firebird |=======================================
+function  NewInterbaseConn(const AHost: string; const APort: integer;
+  const ADBFile, AUser, APassword: string): TSQLConnectionM;
+const
+  IB_PARAMS = 'DriverUnit=Data.DBXInterBase' +#13+#10
+            + 'DriverPackageLoader=TDBXDynalinkDriverLoader,DbxCommonDriver200.bpl' +#13+#10
+            + 'DriverAssemblyLoader=Borland.Data.TDBXDynalinkDriverLoader,Borland.Data.DbxCommonDriver,Version=20.0.0.0,Culture=neutral,PublicKeyToken=91d62ebb5b0d1b1b' +#13+#10
+            + 'MetaDataPackageLoader=TDBXInterbaseMetaDataCommandFactory,DbxInterBaseDriver200.bpl' +#13+#10
+            + 'MetaDataAssemblyLoader=Borland.Data.TDBXInterbaseMetaDataCommandFactory,Borland.Data.DbxInterBaseDriver,Version=20.0.0.0,Culture=neutral,PublicKeyToken=91d62ebb5b0d1b1b' +#13+#10
+            + 'GetDriverFunc=getSQLDriverINTERBASE' +#13+#10
+            + ';LibraryName=dbxint.dll' +#13+#10
+            + 'LibraryName=dbxfb.dll' +#13+#10
+            + 'LibraryNameOsx=libsqlib.dylib' +#13+#10
+            + 'VendorLib=fbclient.dll' +#13+#10
+            + 'VendorLibWin64=ibclient64.dll' +#13+#10
+            + 'VendorLibOsx=libgds.dylib' +#13+#10
+            + 'BlobSize=-1' +#13+#10
+            + 'CommitRetain=False' +#13+#10
+            + 'Database=%s/%d:%s' +#13+#10
+            + 'ErrorResourceFile=' +#13+#10
+            + 'LocaleCode=0000' +#13+#10
+            + 'Password=%s' +#13+#10
+            + 'RoleName=RoleName' +#13+#10
+            + 'ServerCharSet=' +#13+#10
+            + 'SQLDialect=3' +#13+#10
+            + 'IsolationLevel=ReadCommitted' +#13+#10
+            + 'User_Name=%s' +#13+#10
+            + 'WaitOnLocks=True' +#13+#10
+            + 'Trim Char=False' +#13+#10
+            + 'SEP=' +#13+#10
+            + 'DisplayDriverName=InterBase Server';
+begin
+  Result := TSQLConnectionM.Create(nil);
+
+  Result.Name           := 'SQLIBCon';
+  Result.ConnectionName := Lib.DB.CONN_NAME_IB;
+  Result.DriverName     := Lib.DB.DRV_IB;
+  Result.Connected      := False;
+  Result.KeepConnection := False;
+  Result.LoginPrompt    := False;
+  Result.Params.Text    := Format(IB_PARAMS, [AHost,
+                                              Math.ifthen(Bool(APort), APort, 3050),
+                                              ADBFile,
+                                              APassword,
+                                              AUser]);
+  Result.Connected := True;
   Result.Connected := False;
 end;
 
